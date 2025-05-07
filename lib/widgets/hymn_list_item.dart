@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:lucide_icons/lucide_icons.dart' show LucideIcons;
+import 'package:hymn_app/constants/app_colors.dart';
+import 'package:hymn_app/models/hymn.dart';
 
 class HymnListItem extends StatelessWidget {
-  final Map<String, dynamic> hymn;
+  final Hymn hymn;
   final VoidCallback onTap;
   final bool isFavorite;
 
@@ -16,38 +17,33 @@ class HymnListItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final colors = theme.colorScheme;
-    final textTheme = theme.textTheme;
 
     return InkWell(
       onTap: onTap,
-      splashColor: colors.primary.withOpacity(0.1),
+      splashColor: AppColors.primary.withOpacity(0.1),
       child: Container(
+        padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: theme.scaffoldBackgroundColor,
-          border: Border(
-            bottom: BorderSide(color: theme.dividerColor, width: 1),
-          ),
+          border: Border(bottom: BorderSide(color: theme.dividerColor)),
         ),
-        padding: const EdgeInsets.all(16),
         child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // Number circle
+            // Circular number container
             Container(
               width: 40,
               height: 40,
-              decoration: const BoxDecoration(
-                color: Color(0xFF4A148C),
-                shape: BoxShape.circle,
+              decoration: BoxDecoration(
+                color: theme.primaryColor,
+                borderRadius: BorderRadius.circular(20),
               ),
               alignment: Alignment.center,
               margin: const EdgeInsets.only(right: 16),
               child: Text(
-                hymn['number'].toString(),
-                style: const TextStyle(
-                  color: Colors.white,
+                hymn.number.toString(),
+                style: theme.textTheme.bodyLarge?.copyWith(
                   fontFamily: 'Nyala-Bold',
-                  fontSize: 16,
                 ),
               ),
             ),
@@ -57,30 +53,23 @@ class HymnListItem extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    hymn['title'],
-                    style: TextStyle(
+                    hymn.title,
+                    style: theme.textTheme.bodyLarge?.copyWith(
                       fontFamily: 'Nyala-Bold',
-                      fontSize: 16,
-                      color: textTheme.bodyLarge?.color,
                     ),
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    hymn['firstLine'],
+                    hymn.firstLine,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontFamily: 'Nyala',
-                      fontSize: 14,
-                      color: theme.hintColor,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      fontFamily: 'Nyala-Bold',
                     ),
                   ),
                 ],
               ),
             ),
-            // Favorite Heart
-            if (isFavorite)
-              Icon(LucideIcons.heart, size: 18, color: colors.primary),
           ],
         ),
       ),

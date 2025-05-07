@@ -7,45 +7,40 @@ class SearchBarItem extends StatelessWidget {
   final ValueChanged<String> onChanged;
 
   const SearchBarItem({
-    Key? key,
+    super.key,
     required this.placeholder,
     required this.value,
     required this.onChanged,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
-    // final theme = Theme.of(context);
-    // final isDarkMode = theme.brightness == Brightness.dark;
-
-    // Colors based on theme
-    final textColor = const Color(0xFF333333);
-    final textLightColor = const Color(0xFF666666);
-    final cardColor = const Color(0xFFFFFFFF);
+    final theme = Theme.of(context);
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
       decoration: BoxDecoration(
-        color: cardColor,
+        border: Border.all(color: theme.dividerColor),
+        color: theme.cardColor,
         borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
         children: [
-          Icon(LucideIcons.search, size: 20, color: textLightColor),
+          Icon(LucideIcons.search, size: 20, color: theme.iconTheme.color),
           const SizedBox(width: 10),
           Expanded(
             child: TextField(
               controller: TextEditingController(text: value)
                 ..selection = TextSelection.collapsed(offset: value.length),
               onChanged: onChanged,
-              style: TextStyle(
-                color: textColor,
-                fontFamily: 'Nyala',
-                fontSize: 16,
+              style: theme.textTheme.bodyLarge?.copyWith(
+                fontFamily: 'Nyala-Bold',
               ),
               decoration: InputDecoration(
                 hintText: placeholder,
-                hintStyle: TextStyle(color: textLightColor),
+                hintStyle: theme.textTheme.bodyLarge?.copyWith(
+                  fontFamily: 'Nyala-Bold',
+                ),
                 border: InputBorder.none,
               ),
             ),
@@ -53,7 +48,11 @@ class SearchBarItem extends StatelessWidget {
           if (value.isNotEmpty)
             GestureDetector(
               onTap: () => onChanged(''),
-              child: Icon(LucideIcons.x, size: 20, color: textLightColor),
+              child: Icon(
+                LucideIcons.x,
+                size: 20,
+                color: theme.iconTheme.color,
+              ),
             ),
         ],
       ),

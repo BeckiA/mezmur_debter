@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:hymn_app/screens/Detail_Screens/hymn_detail_screen.dart';
 import 'package:hymn_app/services/bible_service.dart';
 import 'package:hymn_app/widgets/daily_verse.dart' show DailyVerse;
 import 'package:hymn_app/widgets/hymn_preview.dart';
 import 'package:hymn_app/widgets/search_bar.dart' show SearchBarItem;
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({Key? key}) : super(key: key);
+  const HomeScreen({super.key});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -68,7 +69,10 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _navigateToHymn(BuildContext context, int hymnId) {
-    Navigator.pushNamed(context, '/hymn/$hymnId');
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => HymnDetailScreen(hymnId: hymnId)),
+    );
   }
 
   @override

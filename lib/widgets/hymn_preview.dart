@@ -5,8 +5,7 @@ class HymnPreview extends StatelessWidget {
   final Map<String, dynamic> hymn;
   final VoidCallback onTap;
 
-  const HymnPreview({Key? key, required this.hymn, required this.onTap})
-    : super(key: key);
+  const HymnPreview({super.key, required this.hymn, required this.onTap});
 
   @override
   Widget build(BuildContext context) {

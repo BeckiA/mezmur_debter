@@ -1,8 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:hymn_app/screens/home_screen.dart' show HomeScreen;
+import 'package:hymn_app/layouts/tab_layout.dart';
+import 'package:hymn_app/providers/theme_provider.dart';
+import 'package:hymn_app/theme/theme_store.dart';
+import 'package:provider/provider.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(
+    ChangeNotifierProvider(
+      create: (_) => ThemeProvider(),
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -10,10 +18,13 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
     return MaterialApp(
       title: 'Hymn App',
-      theme: ThemeData(primarySwatch: Colors.blue),
-      home: const HomeScreen(),
+      home: TabLayout(),
+      darkTheme: darkTheme,
+      theme: lightTheme,
+      themeMode: themeProvider.themeMode,
       debugShowCheckedModeBanner: false,
     );
   }

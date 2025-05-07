@@ -1,0 +1,92 @@
+import 'package:flutter/material.dart';
+import 'package:hymn_app/screens/favorite_screen.dart';
+import 'package:hymn_app/screens/home_screen.dart';
+import 'package:hymn_app/screens/hymn_screen.dart';
+import 'package:hymn_app/screens/settings_screen.dart';
+import 'package:lucide_icons/lucide_icons.dart';
+
+class TabLayout extends StatefulWidget {
+  @override
+  _TabLayoutState createState() => _TabLayoutState();
+}
+
+class _TabLayoutState extends State<TabLayout> {
+  late PageController _pageController;
+  int _selectedIndex = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _pageController = PageController();
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+    _pageController.animateToPage(
+      index,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Scaffold(
+      body: PageView(
+        controller: _pageController,
+        onPageChanged: (index) {
+          setState(() {
+            _selectedIndex = index;
+          });
+        },
+        children: [
+          HomeScreen(),
+          HymnsScreen(),
+          FavoritesScreen(),
+          SettingsScreen(),
+        ],
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _selectedIndex,
+        selectedItemColor: colorScheme.primary,
+        unselectedItemColor: colorScheme.onSurface.withOpacity(0.6),
+        backgroundColor: theme.bottomNavigationBarTheme.backgroundColor,
+        onTap: _onItemTapped,
+        type: BottomNavigationBarType.fixed,
+        selectedLabelStyle: TextStyle(
+          fontFamily: 'Nyala',
+          fontSize: 12,
+          color: colorScheme.primary,
+        ),
+        unselectedLabelStyle: TextStyle(
+          fontFamily: 'Nyala',
+          fontSize: 12,
+          color: colorScheme.onSurface.withOpacity(0.6),
+        ),
+        items: const [
+          BottomNavigationBarItem(icon: Icon(LucideIcons.home), label: 'መነሻ'),
+          BottomNavigationBarItem(
+            icon: Icon(LucideIcons.bookOpen),
+            label: 'መዝሙሮች',
+          ),
+          BottomNavigationBarItem(icon: Icon(LucideIcons.heart), label: 'ተወዳጅ'),
+          BottomNavigationBarItem(
+            icon: Icon(LucideIcons.settings),
+            label: 'ቅንብሮች',
+          ),
+        ],
+      ),
+    );
+  }
+}

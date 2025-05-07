@@ -4,7 +4,7 @@ import 'package:lucide_icons/lucide_icons.dart' show LucideIcons;
 class DailyVerse extends StatelessWidget {
   final Map<String, String> verse;
 
-  const DailyVerse({Key? key, required this.verse}) : super(key: key);
+  const DailyVerse({super.key, required this.verse});
 
   void shareVerse() {
     // You can use the `share_plus` package for actual sharing
