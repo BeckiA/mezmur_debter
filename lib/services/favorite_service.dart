@@ -4,7 +4,7 @@ import 'package:hymn_app/services/hymn_service.dart';
 import '../models/hymn.dart';
 
 class FavoriteService {
-  static List<int> _favoriteHymns = [3, 5]; // Pre-populated favorites
+  static final List<int> _favoriteHymns = []; // Pre-populated favorites
 
   // Check if a hymn is favorite
   static Future<bool> isFavorite(int hymnId) async {

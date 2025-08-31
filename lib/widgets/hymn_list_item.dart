@@ -41,7 +41,7 @@ class HymnListItem extends StatelessWidget {
               alignment: Alignment.center,
               margin: const EdgeInsets.only(right: 16),
               child: Text(
-                hymn.number.toString(),
+                hymn.number?.toString() ?? hymn.id.toString(),
                 style: theme.textTheme.bodyLarge?.copyWith(
                   fontFamily: 'Nyala-Bold',
                 ),

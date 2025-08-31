@@ -1,128 +1,203 @@
+import 'dart:convert';
+import 'package:flutter/services.dart';
 import '../models/hymn.dart';
 
 class HymnService {
-  static final List<Hymn> _hymns = [
-    Hymn(
-      id: 1,
-      number: 123,
-      title: 'ክርስቶስ ተነሳ',
-      firstLine: 'ክርስቶስ ተነሳ ከሙታን',
-      lyrics: '''ክርስቶስ ተነሳ ከሙታን፤
-በሞት ሞትን ረገጠ
-በመቃብር ላሉትም ሕይወት ሆነላቸው!
+  static List<Hymn>? _hymns;
+  static bool _isLoaded = false;
 
-ሃሌ ሃሌ ሃሌሉያ፤
-ሃሌ ሃሌ ሃሌሉያ!
+  // Load hymns from JSON file
+  static Future<void> _loadHymns() async {
+    if (_isLoaded) return;
 
-እንቁዋቁዋ ይነግራል፤
-ዛሬ ጌታ ተነሣ!
-ጨለማ ሰማይ ገፍቶ
-ብርሃን በአድማስ ሰፍቷል።
+    try {
+      final String jsonString = await rootBundle.loadString(
+        'lib/data/lyrics_data.json',
+      );
+      final List<dynamic> jsonData = json.decode(jsonString);
 
-ሃሌ ሃሌ ሃሌሉያ፤
-ሃሌ ሃሌ ሃሌሉያ!''',
-    ),
-    Hymn(
-      id: 2,
-      number: 145,
-      title: 'ለእግዚአብሔር ዘምሩ',
-      firstLine: 'ለእግዚአብሔር ዘምሩ አዲስ ዝማሬ',
-      lyrics: '''ለእግዚአብሔር ዘምሩ አዲስ ዝማሬ፤
-አዳኝን አመስግኑ ቅዱስ በመዝሙር።
+      _hymns =
+          jsonData.asMap().entries.map((entry) {
+            int index = entry.key;
+            Map<String, dynamic> hymnJson = entry.value;
+            return Hymn.fromJson(hymnJson, index + 1);
+          }).toList();
 
-ስሙን ከፍ ከፍ አድርጉ፤
-ስራውን አውሩ ለዓለም፤
-ኃይሉን ተናገሩ ለሰው ሁሉ!''',
-    ),
-    Hymn(
-      id: 3,
-      number: 178,
-      title: 'ቅዱስ ቅዱስ ቅዱስ',
-      firstLine: 'ቅዱስ ቅዱስ ቅዱስ እግዚአብሔር',
-      lyrics: '''ቅዱስ ቅዱስ ቅዱስ እግዚአብሔር ሁሉን የሚገዛ!
-ጥዋት ተነስቶ ልባችን ያመሰግንሃል።
-ቅዱስ ቅዱስ ቅዱስ መሃሪ ለዘላለም
-ሦስት አካል አንድ ፍጹም አምላክ!
-
-ቅዱስ ቅዱስ ቅዱስ! ቅዱሳንህ በሰማይ
-አክሊልን ጥለዋል ፊትህ ላይ በደስታ
-ኪሩቤል ሴራፊም በፊትህ ሰግደዋል
-ነበርክ አለህም ለዘላለም ትኖራለህ!''',
-    ),
-    Hymn(
-      id: 4,
-      number: 205,
-      title: 'ሰላም ለአንቺ ይሁን',
-      firstLine: 'ሰላም ለአንቺ ይሁን ማርያም',
-      lyrics: '''ሰላም ለአንቺ ይሁን ማርያም
-የጸጋ እናት ቅድስት ድንግል
-እግዚአብሔር ከአንቺ ጋር ነው
-ሁለም ሴቶች ያመሰግኑሻል።
-
-የአዳም ልጆች ተስፋ ሆንሻል
-የእግዚአብሔር እናት ሆነሻልና
-በልጅሽ መስቀል አዳምን አዳንሻል
-የሰው ልጆችን ሁሉ ታድያለሽ።''',
-    ),
-    Hymn(
-      id: 5,
-      number: 267,
-      title: 'አቤቱ አንተን እናመሰግናለን',
-      firstLine: 'አቤቱ አንተን እናመሰግናለን',
-      lyrics: '''አቤቱ አንተን እናመሰግናለን
-አቤቱ አንተን እናመሰግናለን
-አቤቱ አንተን እናመሰግናለን
-ለታላቅ ፍቅርህ፤ ለታላቅ ጸጋህ።
-
-በልጅህ ደም ታደስኸን፤
-አንተ ነህ ባለጸጋ፤
-ክብር ይሁንልህ
-ዘወትር ከራብ አደንኸን፤
-አንተ ነህ እረኛችን፤
-ክብር ይሁንልህ።''',
-    ),
-  ];
+      _isLoaded = true;
+    } catch (e) {
+      print('Error loading hymns: $e');
+      _hymns = [];
+      _isLoaded = true;
+    }
+  }
 
   // Get all hymns
-  static List<Hymn> getAllHymns() {
-    return _hymns;
+  static Future<List<Hymn>> getAllHymns() async {
+    await _loadHymns();
+    return _hymns ?? [];
   }
 
   // Get hymn by ID
   static Future<Hymn?> getHymnById(int id) async {
-    return _hymns.firstWhere(
-      (hymn) => hymn.id == id,
-      orElse: () => Hymn(
-        id: -1,
-        number: -1,
-        title: 'Unknown',
-        firstLine: 'Unknown',
-        lyrics: 'Unknown',
-      ),
-    );
+    await _loadHymns();
+    try {
+      return _hymns?.firstWhere((hymn) => hymn.id == id);
+    } catch (e) {
+      return null;
+    }
   }
 
-  // Get hymn by number
+  // Get hymn by number (if number is available)
   static Future<Hymn?> getHymnByNumber(int number) async {
-    return _hymns.firstWhere(
-      (hymn) => hymn.number == number,
-      orElse: () => Hymn(
-        id: -1,
-        number: -1,
-        title: 'Unknown',
-        firstLine: 'Unknown',
-        lyrics: 'Unknown',
-      ),
-    );
+    await _loadHymns();
+    try {
+      return _hymns?.firstWhere((hymn) => hymn.number == number);
+    } catch (e) {
+      return null;
+    }
   }
 
   // Search hymns
   static Future<List<Hymn>> searchHymns(String query) async {
-    final lowercaseQuery = query.toLowerCase();
-    return _hymns.where((hymn) {
-      return hymn.title.toLowerCase().contains(lowercaseQuery) ||
-          hymn.firstLine.toLowerCase().contains(lowercaseQuery) ||
-          hymn.number.toString().contains(lowercaseQuery);
+    await _loadHymns();
+    if (_hymns == null) return [];
+
+    if (query.trim().isEmpty) return _hymns!;
+
+    final lowercaseQuery = query.toLowerCase().trim();
+    final queryWords =
+        lowercaseQuery.split(' ').where((word) => word.isNotEmpty).toList();
+
+    return _hymns!.where((hymn) {
+      // Search by ID (exact match for numbers)
+      if (RegExp(r'^\d+$').hasMatch(query) && hymn.id.toString() == query) {
+        return true;
+      }
+
+      // Search by number (exact match for numbers)
+      if (RegExp(r'^\d+$').hasMatch(query) &&
+          hymn.number != null &&
+          hymn.number.toString() == query) {
+        return true;
+      }
+
+      // Search in title (priority 1) - Amharic text
+      final titleLower = hymn.title;
+      if (titleLower.contains(lowercaseQuery)) return true;
+
+      // Check if all query words are in title
+      if (queryWords.every((word) => titleLower.contains(word))) return true;
+
+      // Search in first line (priority 2) - Amharic text
+      final firstLineLower = hymn.firstLine;
+      if (firstLineLower.contains(lowercaseQuery)) return true;
+
+      // Check if all query words are in first line
+      if (queryWords.every((word) => firstLineLower.contains(word)))
+        return true;
+
+      // Search in search terms (priority 3) - Amharic text
+      if (hymn.searchTerms != null) {
+        for (String term in hymn.searchTerms!) {
+          final termLower = term;
+          if (termLower.contains(lowercaseQuery)) return true;
+
+          // Check if all query words are in any search term
+          if (queryWords.every((word) => termLower.contains(word))) return true;
+        }
+      }
+
+      // Search in lyrics (priority 4) - Amharic text, only for longer queries
+      if (lowercaseQuery.length > 2) {
+        final lyricsLower = hymn.lyrics;
+        if (lyricsLower.contains(lowercaseQuery)) return true;
+
+        // Check if all query words are in lyrics
+        if (queryWords.every((word) => lyricsLower.contains(word))) return true;
+      }
+
+      return false;
     }).toList();
+  }
+
+  // Enhanced search with Amharic-specific features
+  static Future<List<Hymn>> searchHymnsAdvanced(String query) async {
+    await _loadHymns();
+    if (_hymns == null) return [];
+
+    if (query.trim().isEmpty) return _hymns!;
+
+    final lowercaseQuery = query.toLowerCase().trim();
+    final queryWords =
+        lowercaseQuery
+            .split(RegExp(r'\s+')) // Split by any whitespace
+            .where((word) => word.isNotEmpty)
+            .toList();
+
+    return _hymns!.where((hymn) {
+      // Search by ID (exact match for numbers)
+      if (RegExp(r'^\d+$').hasMatch(query) && hymn.id.toString() == query) {
+        return true;
+      }
+
+      // Search by number (exact match for numbers)
+      if (RegExp(r'^\d+$').hasMatch(query) &&
+          hymn.number != null &&
+          hymn.number.toString() == query) {
+        return true;
+      }
+
+      // Search in title (priority 1) - Amharic text
+      final titleLower = hymn.title.toLowerCase();
+      if (titleLower.contains(lowercaseQuery)) return true;
+
+      // Check if all query words are in title
+      if (queryWords.every((word) => titleLower.contains(word))) return true;
+
+      // Search in first line (priority 2) - Amharic text
+      final firstLineLower = hymn.firstLine.toLowerCase();
+      if (firstLineLower.contains(lowercaseQuery)) return true;
+
+      // Check if all query words are in first line
+      if (queryWords.every((word) => firstLineLower.contains(word)))
+        return true;
+
+      // Search in search terms (priority 3) - Amharic text
+      if (hymn.searchTerms != null) {
+        for (String term in hymn.searchTerms!) {
+          final termLower = term.toLowerCase();
+          if (termLower.contains(lowercaseQuery)) return true;
+
+          // Check if all query words are in any search term
+          if (queryWords.every((word) => termLower.contains(word))) return true;
+        }
+      }
+
+      // Search in lyrics (priority 4) - Amharic text, only for longer queries
+      if (lowercaseQuery.length > 2) {
+        final lyricsLower = hymn.lyrics.toLowerCase();
+        if (lyricsLower.contains(lowercaseQuery)) return true;
+
+        // Check if all query words are in lyrics
+        if (queryWords.every((word) => lyricsLower.contains(word))) return true;
+      }
+
+      return false;
+    }).toList();
+  }
+
+  // Get total hymn count
+  static Future<int> getHymnCount() async {
+    await _loadHymns();
+    return _hymns?.length ?? 0;
+  }
+
+  // Get random hymn
+  static Future<Hymn?> getRandomHymn() async {
+    await _loadHymns();
+    if (_hymns == null || _hymns!.isEmpty) return null;
+
+    final random = DateTime.now().millisecondsSinceEpoch % _hymns!.length;
+    return _hymns![random];
   }
 }

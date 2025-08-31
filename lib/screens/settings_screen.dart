@@ -5,7 +5,7 @@ import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
 
 class SettingsScreen extends StatefulWidget {
-  const SettingsScreen({Key? key}) : super(key: key);
+  const SettingsScreen({super.key});
 
   @override
   State<SettingsScreen> createState() => _SettingsScreenState();
@@ -204,7 +204,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           const SizedBox(height: 4),
           Text(
-            '© 2025 የኢትዮጵያ ኦርቶዶክስ ቤተክርስቲያን',
+            '© 2025 የእውነት ቃል አገልግሎት',
             textAlign: TextAlign.center,
             style: theme.textTheme.bodyMedium?.copyWith(fontFamily: 'Nyala'),
           ),

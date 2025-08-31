@@ -7,10 +7,20 @@ import 'package:lucide_icons/lucide_icons.dart';
 
 class TabLayout extends StatefulWidget {
   @override
-  _TabLayoutState createState() => _TabLayoutState();
+  TabLayoutState createState() => TabLayoutState();
 }
 
-class _TabLayoutState extends State<TabLayout> {
+class TabLayoutController {
+  final TabLayoutState _state;
+
+  TabLayoutController(this._state);
+
+  void navigateToTab(int index) {
+    _state._onItemTapped(index);
+  }
+}
+
+class TabLayoutState extends State<TabLayout> {
   late PageController _pageController;
   int _selectedIndex = 0;
 
@@ -35,6 +45,11 @@ class _TabLayoutState extends State<TabLayout> {
       duration: const Duration(milliseconds: 300),
       curve: Curves.easeInOut,
     );
+  }
+
+  // Public method to navigate to a specific tab
+  void navigateToTab(int index) {
+    _onItemTapped(index);
   }
 
   @override

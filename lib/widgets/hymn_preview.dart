@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import '../models/hymn.dart';
 
 class HymnPreview extends StatelessWidget {
-  final Map<String, dynamic> hymn;
+  final Hymn hymn;
   final VoidCallback onTap;
 
   const HymnPreview({super.key, required this.hymn, required this.onTap});
@@ -11,7 +12,6 @@ class HymnPreview extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colors = theme.colorScheme;
-    final textTheme = theme.textTheme;
 
     return InkWell(
       onTap: onTap,
@@ -45,7 +45,7 @@ class HymnPreview extends StatelessWidget {
                 alignment: Alignment.center,
                 margin: const EdgeInsets.only(right: 16),
                 child: Text(
-                  hymn['number'].toString(),
+                  hymn.number?.toString() ?? hymn.id.toString(),
                   style: const TextStyle(
                     color: Colors.white,
                     fontFamily: 'Nyala-Bold',
@@ -59,7 +59,7 @@ class HymnPreview extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      hymn['title'],
+                      hymn.title,
                       style: TextStyle(
                         fontFamily: 'Nyala-Bold',
                         fontSize: 16,
@@ -68,7 +68,7 @@ class HymnPreview extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      hymn['firstLine'],
+                      hymn.firstLine,
                       style: TextStyle(
                         fontFamily: 'Nyala',
                         fontSize: 14,

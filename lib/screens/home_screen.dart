@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
+import 'dart:async';
 import 'package:hymn_app/screens/Detail_Screens/hymn_detail_screen.dart';
 import 'package:hymn_app/services/bible_service.dart';
+import 'package:hymn_app/services/hymn_service.dart';
+import 'package:hymn_app/models/hymn.dart';
+import 'package:hymn_app/widgets/custom_app_bar.dart';
 import 'package:hymn_app/widgets/daily_verse.dart' show DailyVerse;
 import 'package:hymn_app/widgets/hymn_preview.dart';
 import 'package:hymn_app/widgets/search_bar.dart' show SearchBarItem;
+import 'package:hymn_app/layouts/tab_layout.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -15,15 +20,22 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   String searchQuery = '';
   Map<String, String>? verse;
-  List<Map<String, dynamic>> recentHymns = [];
-  List<Map<String, dynamic>> searchResults = [];
+  List<Hymn> recentHymns = [];
+  List<Hymn> searchResults = [];
   bool isLoading = true;
+  Timer? _debounceTimer;
 
   @override
   void initState() {
     super.initState();
     _loadVerse();
     _loadRecentHymns();
+  }
+
+  @override
+  void dispose() {
+    _debounceTimer?.cancel();
+    super.dispose();
   }
 
   Future<void> _loadVerse() async {
@@ -34,36 +46,47 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
-  void _loadRecentHymns() {
-    recentHymns = [
-      {
-        'id': 1,
-        'number': 123,
-        'title': 'ክርስቶስ ተነሳ',
-        'firstLine': 'ክርስቶስ ተነሳ ከሙታን',
-      },
-      {
-        'id': 2,
-        'number': 145,
-        'title': 'ለእግዚአብሔር ዘምሩ',
-        'firstLine': 'ለእግዚአብሔር ዘምሩ አዲስ ዝማሬ',
-      },
-      {
-        'id': 3,
-        'number': 178,
-        'title': 'ቅዱስ ቅዱስ ቅዱስ',
-        'firstLine': 'ቅዱስ ቅዱስ ቅዱስ እግዚአብሔር',
-      },
-    ];
+  Future<void> _loadRecentHymns() async {
+    try {
+      final allHymns = await HymnService.getAllHymns();
+      setState(() {
+        // Take first 3 hymns as recent hymns
+        recentHymns = allHymns.take(3).toList();
+      });
+    } catch (e) {
+      print('Error loading recent hymns: $e');
+      setState(() {
+        recentHymns = [];
+      });
+    }
   }
 
-  void _handleSearch(String query) {
+  Future<void> _handleSearch(String query) async {
     setState(() {
       searchQuery = query;
-      if (query.length > 2) {
-        // searchResults = searchHymns(query);
-      } else {
-        searchResults = [];
+    });
+
+    // Cancel previous timer
+    _debounceTimer?.cancel();
+
+    // Set a new timer for debouncing
+    _debounceTimer = Timer(const Duration(milliseconds: 300), () async {
+      try {
+        if (query.trim().isEmpty) {
+          setState(() {
+            searchResults = [];
+          });
+        } else {
+          final results = await HymnService.searchHymns(query);
+          setState(() {
+            searchResults = results;
+          });
+        }
+      } catch (e) {
+        print('Error searching hymns: $e');
+        setState(() {
+          searchResults = [];
+        });
       }
     });
   }
@@ -80,53 +103,49 @@ class _HomeScreenState extends State<HomeScreen> {
     final theme = Theme.of(context);
 
     if (isLoading) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const CircularProgressIndicator(),
-            const SizedBox(height: 16),
-            Text('እባክዎን ይጠብቁ...', style: theme.textTheme.bodyLarge),
-          ],
+      return Scaffold(
+        appBar: const CustomAppBar(title: 'የአምልኮና የምስጋና መዝሙሮች'),
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const CircularProgressIndicator(),
+              const SizedBox(height: 16),
+              Text('እባክዎን ይጠብቁ...', style: theme.textTheme.bodyLarge),
+            ],
+          ),
         ),
       );
     }
 
     return Scaffold(
+      appBar: const CustomAppBar(title: 'የአምልኮና የምስጋና መዝሙሮች'),
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Center(
-              child: Column(
-                children: [
-                  Text(
-                    'የኢትዮጵያ ኦርቶዶክስ ቤተክርስቲያን',
-                    style: theme.textTheme.titleLarge,
-                  ),
-                  const SizedBox(height: 4),
-                  Text('የምስጋና መዝሙሮች', style: theme.textTheme.bodyMedium),
-                ],
-              ),
-            ),
-            const SizedBox(height: 24),
             SearchBarItem(
-              placeholder: 'ፈልግ በቁጥር ወይም በስም...',
+              placeholder: 'በቁጥር ወይም በስም ፈልግ...',
               value: searchQuery,
               onChanged: _handleSearch,
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 24),
             if (searchResults.isNotEmpty)
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('የፍለጋ ውጤቶች', style: theme.textTheme.titleMedium),
+                  Text(
+                    'የፍለጋ ውጤቶች',
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontFamily: 'Nyala-Bold',
+                    ),
+                  ),
                   const SizedBox(height: 12),
                   ...searchResults.map(
                     (hymn) => HymnPreview(
                       hymn: hymn,
-                      onTap: () => _navigateToHymn(context, hymn['id']),
+                      onTap: () => _navigateToHymn(context, hymn.id),
                     ),
                   ),
                 ],
@@ -134,19 +153,31 @@ class _HomeScreenState extends State<HomeScreen> {
             else ...[
               if (verse != null) DailyVerse(verse: verse!),
               const SizedBox(height: 24),
-              Text('የቅርብ ጊዜ መዝሙሮች', style: theme.textTheme.titleMedium),
+              Text(
+                'የቅርብ ጊዜ መዝሙሮች',
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontFamily: 'Nyala-Bold',
+                ),
+              ),
               const SizedBox(height: 12),
               ...recentHymns.map(
                 (hymn) => HymnPreview(
                   hymn: hymn,
-                  onTap: () => _navigateToHymn(context, hymn['id']),
+                  onTap: () => _navigateToHymn(context, hymn.id),
                 ),
               ),
               const SizedBox(height: 24),
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: () => Navigator.pushNamed(context, '/hymns'),
+                  onPressed: () {
+                    // Navigate to the next tab (Hymns tab at index 1)
+                    final tabLayout =
+                        context.findAncestorStateOfType<TabLayoutState>();
+                    if (tabLayout != null) {
+                      tabLayout.navigateToTab(1);
+                    }
+                  },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF4A148C), // Deep purple
                     foregroundColor: Colors.white, // Text color

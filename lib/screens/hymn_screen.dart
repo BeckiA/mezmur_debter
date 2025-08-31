@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'dart:async';
 import 'package:hymn_app/models/hymn.dart';
 import 'package:hymn_app/screens/Detail_Screens/hymn_detail_screen.dart';
 import 'package:hymn_app/services/hymn_service.dart';
+import 'package:hymn_app/services/recent_hymns_service.dart';
+import 'package:hymn_app/widgets/custom_app_bar.dart';
 import 'package:hymn_app/widgets/hymn_list_item.dart';
 import 'package:hymn_app/widgets/search_bar.dart';
 
@@ -12,149 +15,143 @@ class HymnsScreen extends StatefulWidget {
 
 class _HymnsScreenState extends State<HymnsScreen> {
   List<Hymn> hymns = [];
-  // List<Hymn> filteredHymns = [];
-  List<Hymn> filteredHymns = HymnService.getAllHymns();
-
-  // String searchTerm = '';
-  // String hymnNumber = '';
+  List<Hymn> filteredHymns = [];
   String searchQuery = '';
-  List<Map<String, dynamic>> searchResults = [];
   final ScrollController _scrollController = ScrollController();
-  // final TextEditingController _searchController = TextEditingController();
-  // final TextEditingController _numberController = TextEditingController();
+  Timer? _debounceTimer;
 
   double _headerOpacity = 1.0;
+  bool _isLoading = true;
 
-  void _handleSearch(String query) {
+  @override
+  void initState() {
+    super.initState();
+    _loadHymns();
+    _scrollController.addListener(() {
+      setState(() {
+        double offset = _scrollController.offset;
+        _headerOpacity = offset < 100 ? 1.0 - (offset / 300) : 0.7;
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _debounceTimer?.cancel();
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _loadHymns() async {
+    try {
+      final allHymns = await HymnService.getAllHymns();
+      setState(() {
+        hymns = allHymns;
+        filteredHymns = allHymns;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+      });
+      print('Error loading hymns: $e');
+    }
+  }
+
+  Future<void> _handleSearch(String query) async {
     setState(() {
       searchQuery = query;
-      if (query.length > 2) {
-        // searchResults = searchHymns(query);
-      } else {
-        searchResults = [];
+    });
+
+    // Cancel previous timer
+    _debounceTimer?.cancel();
+
+    // Set a new timer for debouncing
+    _debounceTimer = Timer(const Duration(milliseconds: 300), () async {
+      setState(() {
+        _isLoading = true;
+      });
+
+      try {
+        if (query.trim().isEmpty) {
+          setState(() {
+            filteredHymns = hymns;
+            _isLoading = false;
+          });
+        } else {
+          final searchResults = await HymnService.searchHymns(query);
+          setState(() {
+            filteredHymns = searchResults;
+            _isLoading = false;
+          });
+        }
+      } catch (e) {
+        setState(() {
+          _isLoading = false;
+        });
+        print('Error searching hymns: $e');
       }
     });
   }
 
   @override
-  // void initState() {
-  //   super.initState();
-  //   hymns = HymnService.getAllHymns();
-  //   filteredHymns = hymns;
-  //   _scrollController.addListener(() {
-  //     setState(() {
-  //       double offset = _scrollController.offset;
-  //       _headerOpacity = offset < 100 ? 1.0 - (offset / 300) : 0.7;
-  //     });
-  //   });
-  // }
-  // void searchHymns(String text) {
-  //   setState(() {
-  //     searchTerm = text;
-  //     if (text.isNotEmpty) {
-  //       filteredHymns =
-  //           hymns.where((hymn) {
-  //             final query = text.toLowerCase();
-  //             return hymn.title.toLowerCase().contains(query) ||
-  //                 hymn.firstLine.toLowerCase().contains(query) ||
-  //                 hymn.number.toString().contains(query);
-  //           }).toList();
-  //     } else {
-  //       filteredHymns = hymns;
-  //     }
-  //   });
-  // }
-  // void navigateToHymnByNumber() {
-  //   if (hymnNumber.isNotEmpty) {
-  //     final hymn = hymns.firstWhere(
-  //       (h) => h.number.toString() == hymnNumber,
-  //       orElse:
-  //           () => Hymn(
-  //             id: -1,
-  //             title: 'Not Found',
-  //             firstLine: '',
-  //             number: -1,
-  //             lyrics: '',
-  //           ),
-  //     );
-  //     if (hymn != null) {
-  //       Navigator.pushNamed(context, '/hymn/${hymn.id}');
-  //       _numberController.clear();
-  //       setState(() {
-  //         hymnNumber = '';
-  //       });
-  //     }
-  //   }
-  // }
-  // void clearSearch() {
-  //   _searchController.clear();
-  //   searchHymns('');
-  //   FocusScope.of(context).unfocus();
-  // }
-  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
     return Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
+      appBar: const CustomAppBar(title: 'መዝሙሮች', subtitle: 'ሁሉም መዝሙሮች'),
       body: Column(
         children: [
           AnimatedOpacity(
             duration: Duration(milliseconds: 200),
             opacity: _headerOpacity,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'መዝሙሮች',
-                  style: theme.textTheme.headlineSmall?.copyWith(
-                    fontFamily: 'Nyala-Bold',
-                  ),
-                ),
-                SizedBox(height: 16),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 6,
-                    vertical: 4,
-                  ),
-
-                  child: SearchBarItem(
-                    placeholder: 'ፈልግ በቁጥር ወይም በስም...',
-                    value: searchQuery,
-                    onChanged: _handleSearch,
-                  ),
-                ),
-              ],
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: SearchBarItem(
+                placeholder: 'ፈልግ በቁጥር ወይም በስም...',
+                value: searchQuery,
+                onChanged: _handleSearch,
+              ),
             ),
           ),
           Expanded(
             child:
-                filteredHymns.isEmpty
+                _isLoading
+                    ? Center(child: CircularProgressIndicator())
+                    : filteredHymns.isEmpty
                     ? Center(
                       child: Padding(
                         padding: const EdgeInsets.all(20.0),
                         child: Text(
-                          'ምንም መዝሙር አልተገኘም',
+                          searchQuery.isEmpty
+                              ? 'ምንም መዝሙር አልተገኘም'
+                              : 'ለ "$searchQuery" ምንም ውጤት አልተገኘም',
                           style: TextStyle(fontFamily: 'Nyala', fontSize: 18),
+                          textAlign: TextAlign.center,
                         ),
                       ),
                     )
                     : ListView.builder(
                       controller: _scrollController,
+                      padding: const EdgeInsets.only(bottom: 20),
                       itemCount: filteredHymns.length,
                       itemBuilder: (context, index) {
                         final hymn = filteredHymns[index];
                         return HymnListItem(
                           hymn: hymn,
-                          onTap:
-                              () => Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder:
-                                      (context) =>
-                                          HymnDetailScreen(hymnId: hymn.id),
-                                ),
+                          onTap: () async {
+                            // Add to recent hymns when navigating
+                            await RecentHymnsService.addRecentHymn(hymn.id);
+
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder:
+                                    (context) =>
+                                        HymnDetailScreen(hymnId: hymn.id),
                               ),
+                            );
+                          },
                         );
                       },
                     ),

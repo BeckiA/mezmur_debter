@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:hymn_app/constants/app_colors.dart';
 import 'package:hymn_app/models/hymn.dart';
 import 'package:hymn_app/services/favorite_service.dart';
 import 'package:hymn_app/services/hymn_service.dart';
+import 'package:hymn_app/services/recent_hymns_service.dart';
 import 'package:share_plus/share_plus.dart';
 
 class HymnDetailScreen extends StatefulWidget {
   final int hymnId;
-  const HymnDetailScreen({Key? key, required this.hymnId}) : super(key: key);
+  const HymnDetailScreen({super.key, required this.hymnId});
 
   @override
   _HymnDetailScreenState createState() => _HymnDetailScreenState();
@@ -29,6 +29,10 @@ class _HymnDetailScreenState extends State<HymnDetailScreen> {
   Future<void> _fetchHymnData() async {
     final fetchedHymn = await HymnService.getHymnById(widget.hymnId);
     final favStatus = await FavoriteService.isFavorite(widget.hymnId);
+
+    // Add to recent hymns when hymn is loaded
+    await RecentHymnsService.addRecentHymn(widget.hymnId);
+
     setState(() {
       hymn = fetchedHymn;
       isFavorite = favStatus;
@@ -65,11 +69,13 @@ class _HymnDetailScreenState extends State<HymnDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // final AppColors = AppAppColors.of(context);
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final textTheme = theme.textTheme;
 
     return SafeArea(
       child: Scaffold(
-        backgroundColor: AppColors.background,
+        backgroundColor: theme.scaffoldBackgroundColor,
         body: FutureBuilder(
           future: _loadData,
           builder: (context, snapshot) {
@@ -77,11 +83,7 @@ class _HymnDetailScreenState extends State<HymnDetailScreen> {
               return Center(
                 child: Text(
                   'እባክዎን ይጠብቁ...',
-                  style: TextStyle(
-                    fontFamily: 'Nyala',
-                    fontSize: 18,
-                    color: AppColors.text,
-                  ),
+                  style: textTheme.bodyLarge?.copyWith(fontFamily: 'Nyala'),
                 ),
               );
             }
@@ -90,7 +92,7 @@ class _HymnDetailScreenState extends State<HymnDetailScreen> {
               return Center(
                 child: Text(
                   'መዝሙሩ አልተገኘም።',
-                  style: TextStyle(fontFamily: 'Nyala', fontSize: 18),
+                  style: textTheme.bodyLarge?.copyWith(fontFamily: 'Nyala'),
                 ),
               );
             }
@@ -102,13 +104,16 @@ class _HymnDetailScreenState extends State<HymnDetailScreen> {
                   padding: const EdgeInsets.fromLTRB(16, 20, 16, 16),
                   decoration: BoxDecoration(
                     border: Border(
-                      bottom: BorderSide(color: AppColors.darkBorder),
+                      bottom: BorderSide(color: theme.dividerColor),
                     ),
                   ),
                   child: Row(
                     children: [
                       IconButton(
-                        icon: Icon(Icons.arrow_back, color: AppColors.text),
+                        icon: Icon(
+                          Icons.arrow_back,
+                          color: theme.iconTheme.color,
+                        ),
                         onPressed: () => Navigator.of(context).pop(),
                       ),
                       const SizedBox(width: 12),
@@ -118,19 +123,16 @@ class _HymnDetailScreenState extends State<HymnDetailScreen> {
                           children: [
                             Text(
                               'መዝሙር ${hymn!.number}',
-                              style: TextStyle(
+                              style: textTheme.bodyMedium?.copyWith(
                                 fontFamily: 'Nyala',
-                                fontSize: 16,
-                                color: AppColors.textLight,
+                                color: theme.hintColor,
                               ),
                             ),
                             const SizedBox(height: 4),
                             Text(
                               hymn!.title,
-                              style: TextStyle(
+                              style: textTheme.titleMedium?.copyWith(
                                 fontFamily: 'Nyala-Bold',
-                                fontSize: 18,
-                                color: AppColors.text,
                               ),
                               overflow: TextOverflow.ellipsis,
                             ),
@@ -138,7 +140,7 @@ class _HymnDetailScreenState extends State<HymnDetailScreen> {
                         ),
                       ),
                       IconButton(
-                        icon: const Icon(Icons.share),
+                        icon: Icon(Icons.share, color: theme.iconTheme.color),
                         onPressed: () {
                           Share.share('${hymn!.title}\n\n${hymn!.lyrics}');
                         },
@@ -151,7 +153,9 @@ class _HymnDetailScreenState extends State<HymnDetailScreen> {
                           child: Icon(
                             isFavorite ? Icons.favorite : Icons.favorite_border,
                             color:
-                                isFavorite ? AppColors.primary : AppColors.text,
+                                isFavorite
+                                    ? colorScheme.primary
+                                    : theme.iconTheme.color,
                           ),
                         ),
                       ),
@@ -165,11 +169,10 @@ class _HymnDetailScreenState extends State<HymnDetailScreen> {
                     padding: const EdgeInsets.all(20),
                     child: Text(
                       hymn!.lyrics,
-                      style: TextStyle(
+                      style: textTheme.bodyLarge?.copyWith(
                         fontFamily: 'Nyala',
                         fontSize: fontSize,
                         height: 1.6,
-                        color: AppColors.text,
                       ),
                     ),
                   ),
@@ -182,10 +185,8 @@ class _HymnDetailScreenState extends State<HymnDetailScreen> {
                     vertical: 12,
                   ),
                   decoration: BoxDecoration(
-                    border: Border(
-                      top: BorderSide(color: AppColors.darkBorder),
-                    ),
-                    color: AppColors.card,
+                    border: Border(top: BorderSide(color: theme.dividerColor)),
+                    color: theme.cardColor,
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -194,23 +195,21 @@ class _HymnDetailScreenState extends State<HymnDetailScreen> {
                         onPressed: _decreaseFontSize,
                         icon: Icon(
                           Icons.remove_circle_outline,
-                          color: AppColors.text,
+                          color: theme.iconTheme.color,
                           size: 28,
                         ),
                       ),
                       Text(
                         'መጠን',
-                        style: TextStyle(
+                        style: textTheme.bodyLarge?.copyWith(
                           fontFamily: 'Nyala',
-                          fontSize: 16,
-                          color: AppColors.text,
                         ),
                       ),
                       IconButton(
                         onPressed: _increaseFontSize,
                         icon: Icon(
                           Icons.add_circle_outline,
-                          color: AppColors.text,
+                          color: theme.iconTheme.color,
                           size: 28,
                         ),
                       ),
