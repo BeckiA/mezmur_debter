@@ -9,6 +9,8 @@ import 'package:hymn_app/widgets/daily_verse.dart' show DailyVerse;
 import 'package:hymn_app/widgets/hymn_preview.dart';
 import 'package:hymn_app/widgets/search_bar.dart' show SearchBarItem;
 import 'package:hymn_app/layouts/tab_layout.dart';
+import 'package:hymn_app/providers/font_family_provider.dart';
+import 'package:provider/provider.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -101,6 +103,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final fontFamilyProvider = Provider.of<FontFamilyProvider>(context);
 
     if (isLoading) {
       return Scaffold(
@@ -138,7 +141,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   Text(
                     'የፍለጋ ውጤቶች',
                     style: theme.textTheme.titleMedium?.copyWith(
-                      fontFamily: 'Nyala-Bold',
+                      fontFamily: fontFamilyProvider.fontFamily,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -156,7 +160,8 @@ class _HomeScreenState extends State<HomeScreen> {
               Text(
                 'የቅርብ ጊዜ መዝሙሮች',
                 style: theme.textTheme.titleMedium?.copyWith(
-                  fontFamily: 'Nyala-Bold',
+                  fontFamily: fontFamilyProvider.fontFamily,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
               const SizedBox(height: 12),
@@ -187,9 +192,13 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     elevation: 5,
                   ),
-                  child: const Text(
+                  child:  Text(
                     'ሁሉንም መዝሙሮች ይመልከቱ',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                     style: theme.textTheme.titleMedium?.copyWith(
+                  fontFamily: fontFamilyProvider.fontFamily,
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
                   ),
                 ),
               ),

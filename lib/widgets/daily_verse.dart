@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart' show LucideIcons;
+import 'package:hymn_app/providers/font_family_provider.dart';
+import 'package:provider/provider.dart';
 
 class DailyVerse extends StatelessWidget {
   final Map<String, String> verse;
@@ -13,8 +15,7 @@ class DailyVerse extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colors = theme.colorScheme;
+    final fontFamilyProvider = Provider.of<FontFamilyProvider>(context);
 
     return Container(
       margin: const EdgeInsets.only(top: 24),
@@ -46,10 +47,11 @@ class DailyVerse extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Title
-            const Text(
+            Text(
               'የዕለቱ የመጽሐፍ ቅዱስ ጥቅስ',
               style: TextStyle(
-                fontFamily: 'Nyala-Bold',
+                fontFamily: fontFamilyProvider.fontFamily,
+                fontWeight: FontWeight.bold,
                 fontSize: 18,
                 color: Colors.white,
               ),
@@ -59,8 +61,8 @@ class DailyVerse extends StatelessWidget {
             // Verse text
             Text(
               verse['text'] ?? '',
-              style: const TextStyle(
-                fontFamily: 'Nyala',
+              style: TextStyle(
+                fontFamily: fontFamilyProvider.fontFamily,
                 fontSize: 20,
                 height: 1.5,
                 color: Colors.white,
@@ -73,10 +75,10 @@ class DailyVerse extends StatelessWidget {
               alignment: Alignment.centerRight,
               child: Text(
                 verse['reference'] ?? '',
-                style: const TextStyle(
-                  fontFamily: 'Nyala',
+                style: TextStyle(
+                  fontFamily: fontFamilyProvider.fontFamily,
                   fontSize: 16,
-                  color: Color.fromRGBO(255, 255, 255, 0.9),
+                  color: const Color.fromRGBO(255, 255, 255, 0.9),
                 ),
               ),
             ),
@@ -99,13 +101,13 @@ class DailyVerse extends StatelessWidget {
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
-                    children: const [
-                      Icon(LucideIcons.share2, color: Colors.white, size: 18),
-                      SizedBox(width: 6),
+                    children: [
+                      const Icon(LucideIcons.share2, color: Colors.white, size: 18),
+                      const SizedBox(width: 6),
                       Text(
                         'አጋራ',
                         style: TextStyle(
-                          fontFamily: 'Nyala',
+                          fontFamily: fontFamilyProvider.fontFamily,
                           fontSize: 14,
                           color: Colors.white,
                         ),

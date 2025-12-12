@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:hymn_app/constants/app_colors.dart';
 import 'package:hymn_app/models/hymn.dart';
+import 'package:hymn_app/providers/font_family_provider.dart';
+import 'package:provider/provider.dart';
 
 class HymnListItem extends StatelessWidget {
   final Hymn hymn;
@@ -17,6 +19,7 @@ class HymnListItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final fontFamilyProvider = Provider.of<FontFamilyProvider>(context);
 
     return InkWell(
       onTap: onTap,
@@ -43,7 +46,8 @@ class HymnListItem extends StatelessWidget {
               child: Text(
                 hymn.number?.toString() ?? hymn.id.toString(),
                 style: theme.textTheme.bodyLarge?.copyWith(
-                  fontFamily: 'Nyala-Bold',
+                  fontFamily: fontFamilyProvider.fontFamily,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
             ),
@@ -55,7 +59,8 @@ class HymnListItem extends StatelessWidget {
                   Text(
                     hymn.title,
                     style: theme.textTheme.bodyLarge?.copyWith(
-                      fontFamily: 'Nyala-Bold',
+                      fontFamily: fontFamilyProvider.fontFamily,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -64,7 +69,8 @@ class HymnListItem extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: theme.textTheme.bodyMedium?.copyWith(
-                      fontFamily: 'Nyala-Bold',
+                      fontFamily: fontFamilyProvider.fontFamily,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
                 ],

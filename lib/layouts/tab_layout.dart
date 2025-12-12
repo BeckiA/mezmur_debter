@@ -3,7 +3,9 @@ import 'package:hymn_app/screens/favorite_screen.dart';
 import 'package:hymn_app/screens/home_screen.dart';
 import 'package:hymn_app/screens/hymn_screen.dart';
 import 'package:hymn_app/screens/settings_screen.dart';
+import 'package:hymn_app/providers/font_family_provider.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import 'package:provider/provider.dart';
 
 class TabLayout extends StatefulWidget {
   @override
@@ -56,6 +58,7 @@ class TabLayoutState extends State<TabLayout> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final fontFamilyProvider = Provider.of<FontFamilyProvider>(context);
 
     return Scaffold(
       body: PageView(
@@ -80,12 +83,12 @@ class TabLayoutState extends State<TabLayout> {
         onTap: _onItemTapped,
         type: BottomNavigationBarType.fixed,
         selectedLabelStyle: TextStyle(
-          fontFamily: 'Nyala',
+          fontFamily: fontFamilyProvider.fontFamily,
           fontSize: 12,
           color: colorScheme.primary,
         ),
         unselectedLabelStyle: TextStyle(
-          fontFamily: 'Nyala',
+          fontFamily: fontFamilyProvider.fontFamily,
           fontSize: 12,
           color: colorScheme.onSurface.withOpacity(0.6),
         ),

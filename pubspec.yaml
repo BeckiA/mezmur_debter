@@ -39,10 +39,21 @@ dependencies:
   flutter_switch: ^0.3.2
   shared_preferences: ^2.5.3
   provider: ^6.1.5
+  flutter_local_notifications: ^19.0.0
+  intl: ^0.20.2
+  timezone: ^0.10.0
+  permission_handler: ^11.4.0
+  rename: ^3.1.0
 
 dev_dependencies:
+  flutter_launcher_icons: ^0.13.1
   flutter_test:
     sdk: flutter
+flutter_icons:
+  android: true
+  ios: true
+  image_path: "assets/images/EKA_Logo_Icon.png"
+  adaptive_icon_foreground: "assets/images/EKA_Logo_Icon.png"
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is
@@ -65,6 +76,8 @@ flutter:
   assets:
     - lib/data/
     - assets/fonts/
+    - assets/amharic_bible.json
+    - assets/images/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
@@ -80,14 +93,97 @@ flutter:
   fonts:
     - family: Nyala
       fonts:
-        # - asset: assets/fonts/AdwaSansSerif-Regular.ttf
         - asset: assets/fonts/Entoto.ttf
-        # style: italic
-  #   - family: Trajan Pro
-  #     fonts:
-  #       - asset: fonts/TrajanPro.ttf
-  #       - asset: fonts/TrajanPro_Bold.ttf
-  #         weight: 700
-  #
-  # For details regarding fonts from package dependencies,
-  # see https://flutter.dev/to/font-from-package
+    - family: Entoto
+      fonts:
+        - asset: assets/fonts/Entoto.ttf
+    - family: NotoSansEthiopic
+      fonts:
+        - asset: assets/fonts/NotoSansEthiopic-Regular.ttf
+        - asset: assets/fonts/NotoSansEthiopic-Bold.ttf
+          weight: 700
+        - asset: assets/fonts/NotoSansEthiopic-Light.ttf
+          weight: 300
+    - family: NotoSerifEthiopic
+      fonts:
+        - asset: assets/fonts/NotoSerifEthiopic-Regular.ttf
+        - asset: assets/fonts/NotoSerifEthiopic-Bold.ttf
+          weight: 700
+        - asset: assets/fonts/NotoSerifEthiopic-Light.ttf
+          weight: 300
+    - family: Shiromeda
+      fonts:
+        - asset: assets/fonts/Shiromeda-Regular.ttf
+        - asset: assets/fonts/Shiromeda-Bold.ttf
+          weight: 700
+        - asset: assets/fonts/Shiromeda-SemiBold.ttf
+          weight: 600
+    - family: ShiromedaSerif
+      fonts:
+        - asset: assets/fonts/ShiromedaSerif-Regular.ttf
+        - asset: assets/fonts/ShiromedaSerif-Bold.ttf
+          weight: 700
+        - asset: assets/fonts/ShiromedaSerif-SemiBold.ttf
+          weight: 600
+    - family: MulatAbay
+      fonts:
+        - asset: assets/fonts/MulatAbay-Regular.ttf
+        - asset: assets/fonts/MulatAbay-Bold.ttf
+          weight: 700
+        - asset: assets/fonts/MulatAbay-Thin.ttf
+          weight: 100
+    - family: MulatAddis
+      fonts:
+        - asset: assets/fonts/MulatAddis-Regular.ttf
+    - family: MulatAhmed
+      fonts:
+        - asset: assets/fonts/MulatAhmed-Regular.ttf
+    - family: MulatAwash
+      fonts:
+        - asset: assets/fonts/MulatAwash-Regular.ttf
+    - family: Niyala
+      fonts:
+        - asset: assets/fonts/Niyala.ttf
+    - family: Tera
+      fonts:
+        - asset: assets/fonts/Tera.ttf
+        - asset: assets/fonts/Tera-Regular.ttf
+    - family: Washera
+      fonts:
+        - asset: assets/fonts/Washera Regular.ttf
+        - asset: assets/fonts/Washera Bold.ttf
+          weight: 700
+    - family: Yebs
+      fonts:
+        - asset: assets/fonts/Yebs.ttf
+    - family: Zelan
+      fonts:
+        - asset: assets/fonts/Zelan.ttf
+    - family: Adwa
+      fonts:
+        - asset: assets/fonts/Adwa-Regular.ttf
+        - asset: assets/fonts/Adwa-Bold.ttf
+          weight: 700
+    - family: AdwaSansSerif
+      fonts:
+        - asset: assets/fonts/AdwaSansSerif-Regular.ttf
+        - asset: assets/fonts/AdwaSansSerif-Bold.ttf
+          weight: 700
+    - family: Abinet
+      fonts:
+        - asset: assets/fonts/Abinet.ttf
+    - family: ADDIS
+      fonts:
+        - asset: assets/fonts/ADDIS.ttf
+    - family: Arada
+      fonts:
+        - asset: assets/fonts/Arada.ttf
+    - family: DESTA
+      fonts:
+        - asset: assets/fonts/DESTA.ttf
+    - family: Fantuwa
+      fonts:
+        - asset: assets/fonts/Fantuwa.ttf
+    - family: Neteru
+      fonts:
+        - asset: assets/fonts/Neteru.ttf

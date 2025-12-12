@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:hymn_app/models/hymn.dart';
+import 'package:hymn_app/providers/font_size_provider.dart';
+import 'package:hymn_app/providers/font_family_provider.dart';
 import 'package:hymn_app/services/favorite_service.dart';
 import 'package:hymn_app/services/hymn_service.dart';
 import 'package:hymn_app/services/recent_hymns_service.dart';
+import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
 
 class HymnDetailScreen extends StatefulWidget {
@@ -17,7 +20,6 @@ class _HymnDetailScreenState extends State<HymnDetailScreen> {
   late Future<void> _loadData;
   Hymn? hymn;
   bool isFavorite = false;
-  double fontSize = 24;
   bool isAnimating = false;
 
   @override
@@ -51,19 +53,21 @@ class _HymnDetailScreenState extends State<HymnDetailScreen> {
     });
   }
 
-  void _increaseFontSize() {
-    if (fontSize < 40) {
-      setState(() {
-        fontSize += 2;
-      });
+  void _increaseFontSize(FontSizeProvider fontSizeProvider) {
+    final currentSize = fontSizeProvider.fontSize;
+    if (currentSize == 'small') {
+      fontSizeProvider.setFontSize('medium');
+    } else if (currentSize == 'medium') {
+      fontSizeProvider.setFontSize('large');
     }
   }
 
-  void _decreaseFontSize() {
-    if (fontSize > 16) {
-      setState(() {
-        fontSize -= 2;
-      });
+  void _decreaseFontSize(FontSizeProvider fontSizeProvider) {
+    final currentSize = fontSizeProvider.fontSize;
+    if (currentSize == 'large') {
+      fontSizeProvider.setFontSize('medium');
+    } else if (currentSize == 'medium') {
+      fontSizeProvider.setFontSize('small');
     }
   }
 
@@ -72,6 +76,8 @@ class _HymnDetailScreenState extends State<HymnDetailScreen> {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final textTheme = theme.textTheme;
+    final fontSizeProvider = Provider.of<FontSizeProvider>(context);
+    final fontFamilyProvider = Provider.of<FontFamilyProvider>(context);
 
     return SafeArea(
       child: Scaffold(
@@ -83,7 +89,9 @@ class _HymnDetailScreenState extends State<HymnDetailScreen> {
               return Center(
                 child: Text(
                   'እባክዎን ይጠብቁ...',
-                  style: textTheme.bodyLarge?.copyWith(fontFamily: 'Nyala'),
+                  style: textTheme.bodyLarge?.copyWith(
+                    fontFamily: fontFamilyProvider.fontFamily,
+                  ),
                 ),
               );
             }
@@ -92,7 +100,9 @@ class _HymnDetailScreenState extends State<HymnDetailScreen> {
               return Center(
                 child: Text(
                   'መዝሙሩ አልተገኘም።',
-                  style: textTheme.bodyLarge?.copyWith(fontFamily: 'Nyala'),
+                  style: textTheme.bodyLarge?.copyWith(
+                    fontFamily: fontFamilyProvider.fontFamily,
+                  ),
                 ),
               );
             }
@@ -124,7 +134,7 @@ class _HymnDetailScreenState extends State<HymnDetailScreen> {
                             Text(
                               'መዝሙር ${hymn!.number}',
                               style: textTheme.bodyMedium?.copyWith(
-                                fontFamily: 'Nyala',
+                                fontFamily: fontFamilyProvider.fontFamily,
                                 color: theme.hintColor,
                               ),
                             ),
@@ -132,7 +142,8 @@ class _HymnDetailScreenState extends State<HymnDetailScreen> {
                             Text(
                               hymn!.title,
                               style: textTheme.titleMedium?.copyWith(
-                                fontFamily: 'Nyala-Bold',
+                                fontFamily: fontFamilyProvider.fontFamily,
+                                fontWeight: FontWeight.bold,
                               ),
                               overflow: TextOverflow.ellipsis,
                             ),
@@ -170,8 +181,8 @@ class _HymnDetailScreenState extends State<HymnDetailScreen> {
                     child: Text(
                       hymn!.lyrics,
                       style: textTheme.bodyLarge?.copyWith(
-                        fontFamily: 'Nyala',
-                        fontSize: fontSize,
+                        fontFamily: fontFamilyProvider.fontFamily,
+                        fontSize: fontSizeProvider.fontSizeValue,
                         height: 1.6,
                       ),
                     ),
@@ -192,7 +203,7 @@ class _HymnDetailScreenState extends State<HymnDetailScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       IconButton(
-                        onPressed: _decreaseFontSize,
+                        onPressed: () => _decreaseFontSize(fontSizeProvider),
                         icon: Icon(
                           Icons.remove_circle_outline,
                           color: theme.iconTheme.color,
@@ -202,11 +213,11 @@ class _HymnDetailScreenState extends State<HymnDetailScreen> {
                       Text(
                         'መጠን',
                         style: textTheme.bodyLarge?.copyWith(
-                          fontFamily: 'Nyala',
+                          fontFamily: fontFamilyProvider.fontFamily,
                         ),
                       ),
                       IconButton(
-                        onPressed: _increaseFontSize,
+                        onPressed: () => _increaseFontSize(fontSizeProvider),
                         icon: Icon(
                           Icons.add_circle_outline,
                           color: theme.iconTheme.color,

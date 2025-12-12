@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import '../models/hymn.dart';
+import 'package:hymn_app/providers/font_family_provider.dart';
+import 'package:provider/provider.dart';
 
 class HymnPreview extends StatelessWidget {
   final Hymn hymn;
@@ -12,6 +14,7 @@ class HymnPreview extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colors = theme.colorScheme;
+    final fontFamilyProvider = Provider.of<FontFamilyProvider>(context);
 
     return InkWell(
       onTap: onTap,
@@ -46,9 +49,10 @@ class HymnPreview extends StatelessWidget {
                 margin: const EdgeInsets.only(right: 16),
                 child: Text(
                   hymn.number?.toString() ?? hymn.id.toString(),
-                  style: const TextStyle(
+                  style: TextStyle(
                     color: Colors.white,
-                    fontFamily: 'Nyala-Bold',
+                    fontFamily: fontFamilyProvider.fontFamily,
+                    fontWeight: FontWeight.bold,
                     fontSize: 16,
                   ),
                 ),
@@ -61,7 +65,8 @@ class HymnPreview extends StatelessWidget {
                     Text(
                       hymn.title,
                       style: TextStyle(
-                        fontFamily: 'Nyala-Bold',
+                        fontFamily: fontFamilyProvider.fontFamily,
+                        fontWeight: FontWeight.bold,
                         fontSize: 16,
                         color: theme.textTheme.bodyLarge?.color,
                       ),
@@ -70,7 +75,7 @@ class HymnPreview extends StatelessWidget {
                     Text(
                       hymn.firstLine,
                       style: TextStyle(
-                        fontFamily: 'Nyala',
+                        fontFamily: fontFamilyProvider.fontFamily,
                         fontSize: 14,
                         color: theme.hintColor,
                       ),

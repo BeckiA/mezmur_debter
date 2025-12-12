@@ -7,6 +7,8 @@ import 'package:hymn_app/services/recent_hymns_service.dart';
 import 'package:hymn_app/widgets/custom_app_bar.dart';
 import 'package:hymn_app/widgets/hymn_list_item.dart';
 import 'package:hymn_app/widgets/search_bar.dart';
+import 'package:hymn_app/providers/font_family_provider.dart';
+import 'package:provider/provider.dart';
 
 class HymnsScreen extends StatefulWidget {
   @override
@@ -96,7 +98,7 @@ class _HymnsScreenState extends State<HymnsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final fontFamilyProvider = Provider.of<FontFamilyProvider>(context);
 
     return Scaffold(
       appBar: const CustomAppBar(title: 'መዝሙሮች', subtitle: 'ሁሉም መዝሙሮች'),
@@ -126,7 +128,10 @@ class _HymnsScreenState extends State<HymnsScreen> {
                           searchQuery.isEmpty
                               ? 'ምንም መዝሙር አልተገኘም'
                               : 'ለ "$searchQuery" ምንም ውጤት አልተገኘም',
-                          style: TextStyle(fontFamily: 'Nyala', fontSize: 18),
+                          style: TextStyle(
+                            fontFamily: fontFamilyProvider.fontFamily,
+                            fontSize: 18,
+                          ),
                           textAlign: TextAlign.center,
                         ),
                       ),

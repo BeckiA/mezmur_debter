@@ -6,7 +6,9 @@ import 'package:hymn_app/services/favorite_service.dart';
 import 'package:hymn_app/services/recent_hymns_service.dart';
 import 'package:hymn_app/widgets/custom_app_bar.dart';
 import 'package:hymn_app/widgets/hymn_list_item.dart';
+import 'package:hymn_app/providers/font_family_provider.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import 'package:provider/provider.dart';
 
 class FavoritesScreen extends StatefulWidget {
   const FavoritesScreen({Key? key}) : super(key: key);
@@ -45,6 +47,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final fontFamilyProvider = Provider.of<FontFamilyProvider>(context);
 
     return Scaffold(
       appBar: const CustomAppBar(title: 'ተወዳጅ መዝሙሮች', subtitle: 'የተመረጡ መዝሙሮች'),
@@ -79,13 +82,14 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                             title: Text(
                               'ተወዳጅ መዝሙር ማስወገድ',
                               style: theme.textTheme.titleLarge?.copyWith(
-                                fontFamily: 'Nyala-Bold',
+                                fontFamily: fontFamilyProvider.fontFamily,
+                                fontWeight: FontWeight.bold,
                               ),
                             ),
                             content: Text(
                               'ይህን መዝሙር ከተወዳጅ መዝሙሮች ማስወገድ ይፈልጋሉ?',
                               style: theme.textTheme.bodyMedium?.copyWith(
-                                fontFamily: 'Nyala',
+                                fontFamily: fontFamilyProvider.fontFamily,
                               ),
                             ),
                             actions: [
@@ -95,7 +99,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                                 child: Text(
                                   'ደግመው አስብ',
                                   style: theme.textTheme.bodyMedium?.copyWith(
-                                    fontFamily: 'Nyala',
+                                    fontFamily: fontFamilyProvider.fontFamily,
                                   ),
                                 ),
                               ),
@@ -105,7 +109,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                                 child: Text(
                                   'ያስወግድ',
                                   style: theme.textTheme.bodyMedium?.copyWith(
-                                    fontFamily: 'Nyala',
+                                    fontFamily: fontFamilyProvider.fontFamily,
                                     color: Colors.red,
                                   ),
                                 ),
@@ -122,7 +126,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                           content: Text(
                             '${hymn.title} ከተወዳጅ መዝሙሮች ተወግዷል',
                             style: theme.textTheme.bodyMedium?.copyWith(
-                              fontFamily: 'Nyala',
+                              fontFamily: fontFamilyProvider.fontFamily,
                             ),
                           ),
                           action: SnackBarAction(
@@ -171,7 +175,8 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                       Text(
                         'ምንም ተወዳጅ መዝሙሮች የሉም',
                         style: theme.textTheme.headlineSmall?.copyWith(
-                          fontFamily: 'Nyala-Bold',
+                          fontFamily: fontFamilyProvider.fontFamily,
+                          fontWeight: FontWeight.bold,
                           height: 1.3,
                         ),
                         textAlign: TextAlign.center,
@@ -180,7 +185,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                       Text(
                         'ተወዳጅ መዝሙሮችን ለመጨመር ልብ ምልክቱን ይጫኑ',
                         style: theme.textTheme.bodyLarge?.copyWith(
-                          fontFamily: 'Nyala',
+                          fontFamily: fontFamilyProvider.fontFamily,
                           color: theme.textTheme.bodyLarge?.color?.withOpacity(
                             0.7,
                           ),
@@ -211,7 +216,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                         child: Text(
                           'መዝሙሮችን ያስሱ',
                           style: theme.textTheme.bodyLarge?.copyWith(
-                            fontFamily: 'Nyala',
+                            fontFamily: fontFamilyProvider.fontFamily,
                             color: theme.colorScheme.onPrimary,
                           ),
                         ),

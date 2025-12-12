@@ -1,13 +1,33 @@
 import 'package:flutter/material.dart';
 import 'package:hymn_app/layouts/tab_layout.dart';
 import 'package:hymn_app/providers/theme_provider.dart';
+import 'package:hymn_app/providers/font_size_provider.dart';
+import 'package:hymn_app/providers/font_family_provider.dart';
+import 'package:hymn_app/services/notification_service.dart';
+import 'package:hymn_app/services/daily_verse_notification_service.dart';
 import 'package:hymn_app/theme/theme_store.dart';
+import 'package:timezone/timezone.dart';
+import 'package:timezone/data/latest.dart' as tz;
 import 'package:provider/provider.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  // Initialize timezones before using them
+  tz.initializeTimeZones();
+  final location = TZDateTime.now(local);
+  print('Current time zone: ${location}');
+  await NotificationService().init();
+  
+  // Initialize daily verse notification with the same verse as home screen
+  await DailyVerseNotificationService().initializeDailyVerseNotification();
+  
   runApp(
-    ChangeNotifierProvider(
-      create: (_) => ThemeProvider(),
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => ThemeProvider()),
+        ChangeNotifierProvider(create: (_) => FontSizeProvider()),
+        ChangeNotifierProvider(create: (_) => FontFamilyProvider()),
+      ],
       child: const MyApp(),
     ),
   );

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import 'package:hymn_app/providers/font_family_provider.dart';
+import 'package:provider/provider.dart';
 
 class SearchBarItem extends StatefulWidget {
   final String placeholder;
@@ -47,6 +49,7 @@ class _SearchBarItemState extends State<SearchBarItem> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final fontFamilyProvider = Provider.of<FontFamilyProvider>(context);
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
@@ -64,7 +67,8 @@ class _SearchBarItemState extends State<SearchBarItem> {
               controller: _controller,
               onChanged: widget.onChanged,
               style: theme.textTheme.bodyLarge?.copyWith(
-                fontFamily: 'Nyala-Bold',
+                fontFamily: fontFamilyProvider.fontFamily,
+                fontWeight: FontWeight.bold,
               ),
               // Enhanced text input properties for Amharic
               textInputAction: TextInputAction.search,
@@ -75,7 +79,8 @@ class _SearchBarItemState extends State<SearchBarItem> {
               decoration: InputDecoration(
                 hintText: widget.placeholder,
                 hintStyle: theme.textTheme.bodyLarge?.copyWith(
-                  fontFamily: 'Nyala-Bold',
+                  fontFamily: fontFamilyProvider.fontFamily,
+                  fontWeight: FontWeight.bold,
                   color: theme.hintColor,
                 ),
                 border: InputBorder.none,

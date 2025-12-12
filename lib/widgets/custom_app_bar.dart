@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:hymn_app/providers/font_family_provider.dart';
+import 'package:provider/provider.dart';
 
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
@@ -26,6 +28,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final fontFamilyProvider = Provider.of<FontFamilyProvider>(context);
 
     return AppBar(
       backgroundColor: backgroundColor ?? theme.scaffoldBackgroundColor,
@@ -49,7 +52,8 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
           Text(
             title,
             style: theme.textTheme.headlineSmall?.copyWith(
-              fontFamily: 'Nyala-Bold',
+              fontFamily: fontFamilyProvider.fontFamily,
+              fontWeight: FontWeight.bold,
               color: titleColor ?? colorScheme.onSurface,
               height: 1.2,
             ),
@@ -59,7 +63,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
             Text(
               subtitle!,
               style: theme.textTheme.bodyMedium?.copyWith(
-                fontFamily: 'Nyala',
+                fontFamily: fontFamilyProvider.fontFamily,
                 color: (titleColor ?? colorScheme.onSurface).withOpacity(0.7),
                 height: 1.1,
               ),
