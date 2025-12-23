@@ -194,7 +194,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   child:  Text(
                     'ሁሉንም መዝሙሮች ይመልከቱ',
-                     style: theme.textTheme.titleMedium?.copyWith(
+                     style: theme.textTheme.bodyLarge?.copyWith(
                   fontFamily: fontFamilyProvider.fontFamily,
                   fontSize: 16,
                   fontWeight: FontWeight.bold,

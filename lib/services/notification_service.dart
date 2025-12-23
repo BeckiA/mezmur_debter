@@ -83,8 +83,8 @@ class NotificationService {
       now.year,
       now.month,
       now.day,
-      17, // hour (8 AM in 24-hour format)
-      45, // minute
+      13, // hour (8 AM in 24-hour format)
+      09, // minute
     );
     // print('Scheduled date: $scheduledDate');
     print('Current date: $now');
@@ -99,7 +99,7 @@ class NotificationService {
       print('Exact alarm permission granted: $hasExactPermission');
       await flutterLocalNotificationsPlugin.zonedSchedule(
         0,
-        'Verse of the Day',
+        'የዕለቱ የመጽሐፍ ቅዱስ ጥቅስ',
         verse.isNotEmpty ? verse : "Stay inspired with daily verses!",
         scheduledDate,
         platformChannelSpecifics,

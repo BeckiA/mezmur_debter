@@ -97,7 +97,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                                 onPressed:
                                     () => Navigator.of(context).pop(false),
                                 child: Text(
-                                  'ደግመው አስብ',
+                                  'ይቅር',
                                   style: theme.textTheme.bodyMedium?.copyWith(
                                     fontFamily: fontFamilyProvider.fontFamily,
                                   ),
@@ -107,7 +107,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                                 onPressed:
                                     () => Navigator.of(context).pop(true),
                                 child: Text(
-                                  'ያስወግድ',
+                                  'አስወግድ',
                                   style: theme.textTheme.bodyMedium?.copyWith(
                                     fontFamily: fontFamilyProvider.fontFamily,
                                     color: Colors.red,
@@ -130,7 +130,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                             ),
                           ),
                           action: SnackBarAction(
-                            label: 'ደግመው አክል',
+                            label: 'በድጋሚ ይመለስ',
                             onPressed: () async {
                               await FavoriteService.toggleFavorite(hymn.id);
                               if (mounted) {

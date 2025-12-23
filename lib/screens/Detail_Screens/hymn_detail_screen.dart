@@ -132,7 +132,7 @@ class _HymnDetailScreenState extends State<HymnDetailScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'መዝሙር ${hymn!.number}',
+                              'መዝሙር ${hymn!.id}',
                               style: textTheme.bodyMedium?.copyWith(
                                 fontFamily: fontFamilyProvider.fontFamily,
                                 color: theme.hintColor,
