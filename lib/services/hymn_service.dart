@@ -69,15 +69,12 @@ class HymnService {
         lowercaseQuery.split(' ').where((word) => word.isNotEmpty).toList();
 
     return _hymns!.where((hymn) {
-      // Search by ID (exact match for numbers)
-      if (RegExp(r'^\d+$').hasMatch(query) && hymn.id.toString() == query) {
-        return true;
-      }
+      // Search by ID
+      if (hymn.id.toString().contains(lowercaseQuery)) return true;
 
-      // Search by number (exact match for numbers)
-      if (RegExp(r'^\d+$').hasMatch(query) &&
-          hymn.number != null &&
-          hymn.number.toString() == query) {
+      // Search by number
+      if (hymn.number != null &&
+          hymn.number.toString().contains(lowercaseQuery)) {
         return true;
       }
 
@@ -119,74 +116,7 @@ class HymnService {
       return false;
     }).toList();
   }
-
-  // Enhanced search with Amharic-specific features
-  static Future<List<Hymn>> searchHymnsAdvanced(String query) async {
-    await _loadHymns();
-    if (_hymns == null) return [];
-
-    if (query.trim().isEmpty) return _hymns!;
-
-    final lowercaseQuery = query.toLowerCase().trim();
-    final queryWords =
-        lowercaseQuery
-            .split(RegExp(r'\s+')) // Split by any whitespace
-            .where((word) => word.isNotEmpty)
-            .toList();
-
-    return _hymns!.where((hymn) {
-      // Search by ID (exact match for numbers)
-      if (RegExp(r'^\d+$').hasMatch(query) && hymn.id.toString() == query) {
-        return true;
-      }
-
-      // Search by number (exact match for numbers)
-      if (RegExp(r'^\d+$').hasMatch(query) &&
-          hymn.number != null &&
-          hymn.number.toString() == query) {
-        return true;
-      }
-
-      // Search in title (priority 1) - Amharic text
-      final titleLower = hymn.title.toLowerCase();
-      if (titleLower.contains(lowercaseQuery)) return true;
-
-      // Check if all query words are in title
-      if (queryWords.every((word) => titleLower.contains(word))) return true;
-
-      // Search in first line (priority 2) - Amharic text
-      final firstLineLower = hymn.firstLine.toLowerCase();
-      if (firstLineLower.contains(lowercaseQuery)) return true;
-
-      // Check if all query words are in first line
-      if (queryWords.every((word) => firstLineLower.contains(word)))
-        return true;
-
-      // Search in search terms (priority 3) - Amharic text
-      if (hymn.searchTerms != null) {
-        for (String term in hymn.searchTerms!) {
-          final termLower = term.toLowerCase();
-          if (termLower.contains(lowercaseQuery)) return true;
-
-          // Check if all query words are in any search term
-          if (queryWords.every((word) => termLower.contains(word))) return true;
-        }
-      }
-
-      // Search in lyrics (priority 4) - Amharic text, only for longer queries
-      if (lowercaseQuery.length > 2) {
-        final lyricsLower = hymn.lyrics.toLowerCase();
-        if (lyricsLower.contains(lowercaseQuery)) return true;
-
-        // Check if all query words are in lyrics
-        if (queryWords.every((word) => lyricsLower.contains(word))) return true;
-      }
-
-      return false;
-    }).toList();
-  }
-
-  // Get total hymn count
+    // Get total hymn count
   static Future<int> getHymnCount() async {
     await _loadHymns();
     return _hymns?.length ?? 0;

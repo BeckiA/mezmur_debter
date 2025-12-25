@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_switch/flutter_switch.dart';
 import 'package:hymn_app/providers/theme_provider.dart';
 import 'package:hymn_app/providers/font_size_provider.dart';
@@ -6,6 +7,7 @@ import 'package:hymn_app/providers/font_family_provider.dart';
 import 'package:hymn_app/providers/notification_provider.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
+import 'package:share_plus/share_plus.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -280,6 +282,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           icon: LucideIcons.info,
           label: 'ስለ እኛ',
           fontFamilyProvider: fontFamilyProvider,
+          onTap: () => _showAboutBottomSheet(context, theme, fontFamilyProvider),
         ),
         _buildLinkItem(
           theme: theme,
@@ -406,13 +409,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
     required String label,
     required FontFamilyProvider fontFamilyProvider,
     bool showDivider = true,
+    VoidCallback? onTap,
   }) {
     return Consumer<FontSizeProvider>(
       builder: (context, fontSizeProvider, _) {
         return Column(
           children: [
             InkWell(
-              onTap: () {},
+              onTap: onTap ?? () {},
               child: Row(
                 children: [
                   Container(
@@ -439,6 +443,25 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ],
         );
       },
+    );
+  }
+
+  void _showAboutBottomSheet(
+    BuildContext context,
+    ThemeData theme,
+    FontFamilyProvider fontFamilyProvider,
+  ) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: theme.scaffoldBackgroundColor,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => _AboutBottomSheet(
+        theme: theme,
+        fontFamilyProvider: fontFamilyProvider,
+      ),
     );
   }
 }
@@ -562,6 +585,360 @@ class _FontFamilyBottomSheet extends StatelessWidget {
           },
         );
       },
+    );
+  }
+}
+
+class _AboutBottomSheet extends StatelessWidget {
+  final ThemeData theme;
+  final FontFamilyProvider fontFamilyProvider;
+
+  const _AboutBottomSheet({
+    required this.theme,
+    required this.fontFamilyProvider,
+  });
+
+  Future<void> _copyToClipboard(BuildContext context, String text) async {
+    await Clipboard.setData(ClipboardData(text: text));
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Consumer<FontSizeProvider>(
+            builder: (context, fontSizeProvider, _) {
+              return Text(
+                'ወደ ማህደረ ትዕዛዝ ተቀድቷል',
+                style: TextStyle(
+                  fontFamily: fontFamilyProvider.fontFamily,
+                  fontSize: fontSizeProvider.fontSizeValue * 0.67,
+                ),
+              );
+            },
+          ),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    }
+  }
+
+  Future<void> _shareApp() async {
+    await Share.share(
+      'መዝሙር ደብተር - የአምልኮና የምስጋና መዝሙሮች\n\n'
+      'ይህ መተግበሪያ ለጥናትና ለአምልኮ አገልግሎት የተዘጋጀ ነው።',
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<FontSizeProvider>(
+      builder: (context, fontSizeProvider, _) {
+        final baseFontSize = fontSizeProvider.fontSizeValue;
+        
+        return DraggableScrollableSheet(
+          initialChildSize: 0.85,
+          minChildSize: 0.5,
+          maxChildSize: 0.95,
+          builder: (context, scrollController) {
+            return SingleChildScrollView(
+              controller: scrollController,
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    // Handle bar
+                    Container(
+                      margin: const EdgeInsets.only(bottom: 20),
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: theme.dividerColor,
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                    
+                    // App Icon
+                    Container(
+                      width: 80,
+                      height: 80,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(16),
+                        color: theme.cardColor,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.1),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(16),
+                        child: Image.asset(
+                          'assets/images/EKA_Logo_Icon.png',
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            return Icon(
+                              LucideIcons.music,
+                              size: 40,
+                              color: theme.primaryColor,
+                            );
+                          },
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    
+                    // App Title
+                    Text(
+                      'መዝሙር ደብተር',
+                      style: theme.textTheme.headlineSmall?.copyWith(
+                        fontFamily: fontFamilyProvider.fontFamily,
+                        fontWeight: FontWeight.bold,
+                        fontSize: baseFontSize * 1.25,
+                      ),
+                    ),
+                    const SizedBox(height: 32),
+                    
+                    // Developer Info
+                    _buildInfoRow(
+                      context,
+                      theme,
+                      fontFamilyProvider,
+                      fontSizeProvider,
+                      'Developer',
+                      'Bereket Abera',
+                      baseFontSize,
+                    ),
+                    const SizedBox(height: 16),
+                    
+                    // Email (clickable to copy)
+                    GestureDetector(
+                      onTap: () => _copyToClipboard(context, 'berekeetabera@gmail.com'),
+                      child: _buildInfoRow(
+                        context,
+                        theme,
+                        fontFamilyProvider,
+                        fontSizeProvider,
+                        'Email',
+                        'berekeetabera@gmail.com',
+                        baseFontSize,
+                      ),
+                    ),
+                    const SizedBox(height: 32),
+                    
+                    // Share App Link
+                    InkWell(
+                      onTap: _shareApp,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                        decoration: BoxDecoration(
+                          color: theme.primaryColor.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                            color: theme.primaryColor,
+                            width: 1,
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              LucideIcons.share2,
+                              color: theme.primaryColor,
+                              size: 20,
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              'መተግበሪያውን ያጋሩ',
+                              style: theme.textTheme.bodyLarge?.copyWith(
+                                fontFamily: fontFamilyProvider.fontFamily,
+                                color: theme.primaryColor,
+                                fontWeight: FontWeight.bold,
+                                fontSize: baseFontSize * 0.67,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 32),
+                    
+                    // Description
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: theme.cardColor,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'ስለ መተግበሪያው',
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              fontFamily: fontFamilyProvider.fontFamily,
+                              fontWeight: FontWeight.bold,
+                              fontSize: baseFontSize * 0.83,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          Text(
+                            'ይህ መዝሙር ደብተር ለጥናት፣ ለአምልኮ እና ለምስጋና አገልግሎት የተዘጋጀ ነው። በዚህ መተግበሪያ ውስጥ የአማርኛ መዝሙሮችን በቀላሉ ማግኘት፣ መመልከት እና መጠቀም ይችላሉ።',
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              fontFamily: fontFamilyProvider.fontFamily,
+                              fontSize: baseFontSize * 0.67,
+                              height: 1.6,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    
+                    // Privacy Info
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: theme.cardColor,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Icon(
+                                LucideIcons.shield,
+                                size: 20,
+                                color: theme.primaryColor,
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                'የግላዊነት መረጃ',
+                                style: theme.textTheme.titleMedium?.copyWith(
+                                  fontFamily: fontFamilyProvider.fontFamily,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: baseFontSize * 0.83,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          Text(
+                            '• ምንም የተጠቃሚ ውሂብ አንሰብራም\n'
+                            '• ምንም ማስታወቂያዎች የሉም\n'
+                            '• የክህደት መዳረሻ የሚያስፈልገው የቅርብ ጊዜ መዝሙሮችን ለመከታተል ብቻ ነው',
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              fontFamily: fontFamilyProvider.fontFamily,
+                              fontSize: baseFontSize * 0.67,
+                              height: 1.6,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    
+                    // Contact Info
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: theme.cardColor,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'ጥያቄዎች ወይም ሀሳቦች ካሉዎት፣ እባክዎን ያግኙን።',
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              fontFamily: fontFamilyProvider.fontFamily,
+                              fontSize: baseFontSize * 0.67,
+                              height: 1.6,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          GestureDetector(
+                            onTap: () => _copyToClipboard(context, 'berekeetabera@gmail.com'),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+                              decoration: BoxDecoration(
+                                color: theme.primaryColor.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    LucideIcons.mail,
+                                    size: 18,
+                                    color: theme.primaryColor,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    'berekeetabera@gmail.com',
+                                    style: theme.textTheme.bodyMedium?.copyWith(
+                                      fontFamily: fontFamilyProvider.fontFamily,
+                                      color: theme.primaryColor,
+                                      fontSize: baseFontSize * 0.67,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Icon(
+                                    LucideIcons.copy,
+                                    size: 16,
+                                    color: theme.primaryColor,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildInfoRow(
+    BuildContext context,
+    ThemeData theme,
+    FontFamilyProvider fontFamilyProvider,
+    FontSizeProvider fontSizeProvider,
+    String label,
+    String value,
+    double baseFontSize, {
+    bool isClickable = false,
+  }) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Text(
+          '$label: ',
+          style: theme.textTheme.bodyLarge?.copyWith(
+            fontFamily: fontFamilyProvider.fontFamily,
+            fontWeight: FontWeight.bold,
+            fontSize: baseFontSize * 0.67,
+            color: theme.unselectedWidgetColor,
+          ),
+        ),
+        Text(
+          value,
+          style: theme.textTheme.bodyLarge?.copyWith(
+            fontFamily: fontFamilyProvider.fontFamily,
+            fontSize: baseFontSize * 0.67,
+            color: isClickable ? theme.primaryColor : theme.textTheme.bodyLarge?.color,
+            decoration: isClickable ? TextDecoration.underline : null,
+          ),
+        ),
+      ],
     );
   }
 }

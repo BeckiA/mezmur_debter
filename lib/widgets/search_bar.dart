@@ -22,6 +22,7 @@ class SearchBarItem extends StatefulWidget {
 
 class _SearchBarItemState extends State<SearchBarItem> {
   late TextEditingController _controller;
+  bool _isUpdatingFromWidget = false;
 
   @override
   void initState() {
@@ -32,11 +33,20 @@ class _SearchBarItemState extends State<SearchBarItem> {
   @override
   void didUpdateWidget(SearchBarItem oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.value != widget.value) {
-      _controller.text = widget.value;
-      _controller.selection = TextSelection.collapsed(
-        offset: widget.value.length,
+    // Only update if the value changed AND it's different from controller's current text
+    // This prevents resetting during IME composition (like Amharic input)
+    if (oldWidget.value != widget.value && 
+        _controller.text != widget.value &&
+        !_isUpdatingFromWidget) {
+      _isUpdatingFromWidget = true;
+      final currentSelection = _controller.selection;
+      _controller.value = TextEditingValue(
+        text: widget.value,
+        selection: currentSelection.isValid
+            ? currentSelection
+            : TextSelection.collapsed(offset: widget.value.length),
       );
+      _isUpdatingFromWidget = false;
     }
   }
 
@@ -65,7 +75,12 @@ class _SearchBarItemState extends State<SearchBarItem> {
           Expanded(
             child: TextField(
               controller: _controller,
-              onChanged: widget.onChanged,
+              onChanged: (value) {
+                // Prevent circular updates
+                if (!_isUpdatingFromWidget) {
+                  widget.onChanged(value);
+                }
+              },
               style: theme.textTheme.bodyLarge?.copyWith(
                 fontFamily: fontFamilyProvider.fontFamily,
                 fontWeight: FontWeight.bold,
@@ -76,6 +91,7 @@ class _SearchBarItemState extends State<SearchBarItem> {
               textCapitalization: TextCapitalization.none,
               autocorrect: false,
               enableSuggestions: false,
+              enableInteractiveSelection: true,
               decoration: InputDecoration(
                 hintText: widget.placeholder,
                 hintStyle: theme.textTheme.bodyLarge?.copyWith(

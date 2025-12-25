@@ -66,19 +66,5 @@ void main() {
       final results4 = await HymnService.searchHymns('ክበር');
       expect(results4, isNotEmpty);
     });
-
-    test('Advanced search should handle Amharic text better', () async {
-      // Test advanced search with Amharic text
-      final results1 = await HymnService.searchHymnsAdvanced('ሃሌ ሉያ');
-      expect(results1, isNotEmpty);
-
-      // Test advanced search with multiple Amharic words
-      final results2 = await HymnService.searchHymnsAdvanced('ምስጋና ለ');
-      expect(results2, isNotEmpty);
-
-      // Test advanced search with whitespace variations
-      final results3 = await HymnService.searchHymnsAdvanced('  ሃሌ   ሉያ  ');
-      expect(results3, isNotEmpty);
-    });
   });
 }
