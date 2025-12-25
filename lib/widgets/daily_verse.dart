@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart' show LucideIcons;
 import 'package:hymn_app/providers/font_family_provider.dart';
+import 'package:hymn_app/providers/font_size_provider.dart';
 import 'package:provider/provider.dart';
 
 class DailyVerse extends StatelessWidget {
@@ -17,7 +18,11 @@ class DailyVerse extends StatelessWidget {
   Widget build(BuildContext context) {
     final fontFamilyProvider = Provider.of<FontFamilyProvider>(context);
 
-    return Container(
+    return Consumer<FontSizeProvider>(
+      builder: (context, fontSizeProvider, _) {
+        final baseFontSize = fontSizeProvider.fontSizeValue;
+        
+        return Container(
       margin: const EdgeInsets.only(top: 24),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12),
@@ -52,7 +57,7 @@ class DailyVerse extends StatelessWidget {
               style: TextStyle(
                 fontFamily: fontFamilyProvider.fontFamily,
                 fontWeight: FontWeight.bold,
-                fontSize: 18,
+                fontSize: baseFontSize * 0.75, // 75% of base size for title
                 color: Colors.white,
               ),
             ),
@@ -63,7 +68,7 @@ class DailyVerse extends StatelessWidget {
               verse['text'] ?? '',
               style: TextStyle(
                 fontFamily: fontFamilyProvider.fontFamily,
-                fontSize: 20,
+                fontSize: baseFontSize,
                 height: 1.5,
                 color: Colors.white,
               ),
@@ -77,7 +82,7 @@ class DailyVerse extends StatelessWidget {
                 verse['reference'] ?? '',
                 style: TextStyle(
                   fontFamily: fontFamilyProvider.fontFamily,
-                  fontSize: 16,
+                  fontSize: baseFontSize * 0.67, // 67% of base size for reference
                   color: const Color.fromRGBO(255, 255, 255, 0.9),
                 ),
               ),
@@ -108,7 +113,7 @@ class DailyVerse extends StatelessWidget {
                         'አጋራ',
                         style: TextStyle(
                           fontFamily: fontFamilyProvider.fontFamily,
-                          fontSize: 14,
+                          fontSize: baseFontSize * 0.58, // 58% of base size for button
                           color: Colors.white,
                         ),
                       ),
@@ -120,6 +125,8 @@ class DailyVerse extends StatelessWidget {
           ],
         ),
       ),
+    );
+      },
     );
   }
 }

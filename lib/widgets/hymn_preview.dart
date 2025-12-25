@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import '../models/hymn.dart';
 import 'package:hymn_app/providers/font_family_provider.dart';
+import 'package:hymn_app/providers/font_size_provider.dart';
 import 'package:provider/provider.dart';
 
 class HymnPreview extends StatelessWidget {
@@ -16,7 +17,11 @@ class HymnPreview extends StatelessWidget {
     final colors = theme.colorScheme;
     final fontFamilyProvider = Provider.of<FontFamilyProvider>(context);
 
-    return InkWell(
+    return Consumer<FontSizeProvider>(
+      builder: (context, fontSizeProvider, _) {
+        final baseFontSize = fontSizeProvider.fontSizeValue;
+        
+        return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(8),
       splashColor: colors.primary.withOpacity(0.1),
@@ -53,7 +58,7 @@ class HymnPreview extends StatelessWidget {
                     color: Colors.white,
                     fontFamily: fontFamilyProvider.fontFamily,
                     fontWeight: FontWeight.bold,
-                    fontSize: 16,
+                    fontSize: baseFontSize * 0.67, // 67% of base size
                   ),
                 ),
               ),
@@ -67,7 +72,7 @@ class HymnPreview extends StatelessWidget {
                       style: TextStyle(
                         fontFamily: fontFamilyProvider.fontFamily,
                         fontWeight: FontWeight.bold,
-                        fontSize: 16,
+                        fontSize: baseFontSize * 0.67, // 67% of base size
                         color: theme.textTheme.bodyLarge?.color,
                       ),
                     ),
@@ -76,7 +81,7 @@ class HymnPreview extends StatelessWidget {
                       hymn.firstLine,
                       style: TextStyle(
                         fontFamily: fontFamilyProvider.fontFamily,
-                        fontSize: 14,
+                        fontSize: baseFontSize * 0.58, // 58% of base size
                         color: theme.hintColor,
                       ),
                     ),
@@ -88,6 +93,8 @@ class HymnPreview extends StatelessWidget {
           ),
         ),
       ),
+    );
+      },
     );
   }
 }

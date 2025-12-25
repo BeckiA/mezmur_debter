@@ -18,7 +18,7 @@ class NotificationService {
     tz.initializeTimeZones();
 
     const AndroidInitializationSettings initializationSettingsAndroid =
-        AndroidInitializationSettings('@mipmap/ic_launcher');
+        AndroidInitializationSettings('@mipmap/mezmur_debter_logo');
 
     const DarwinInitializationSettings initializationSettingsIOS =
         DarwinInitializationSettings(
@@ -34,6 +34,34 @@ class NotificationService {
     );
 
     await flutterLocalNotificationsPlugin.initialize(initializationSettings);
+  }
+
+  /// Check if notification permission is granted
+  Future<bool> checkNotificationPermission() async {
+    try {
+      final status = await Permission.notification.status;
+      return status.isGranted;
+    } catch (e) {
+      print('Error checking notification permission: $e');
+      // On Android < 13, notifications are enabled by default
+      return true;
+    }
+  }
+
+  /// Request notification permission
+  Future<bool> requestNotificationPermission() async {
+    try {
+      final status = await Permission.notification.request();
+      return status.isGranted;
+    } catch (e) {
+      print('Error requesting notification permission: $e');
+      return false;
+    }
+  }
+
+  /// Cancel all scheduled notifications
+  Future<void> cancelAllNotifications() async {
+    await flutterLocalNotificationsPlugin.cancelAll();
   }
 
   Future<bool> _checkExactAlarmPermission() async {
@@ -62,6 +90,7 @@ class NotificationService {
       importance: Importance.max,
       priority: Priority.max,
       showWhen: true,
+      icon: 'notification_icon',
     );
 
     const DarwinNotificationDetails iOSPlatformChannelSpecifics =
@@ -83,8 +112,8 @@ class NotificationService {
       now.year,
       now.month,
       now.day,
-      13, // hour (8 AM in 24-hour format)
-      09, // minute
+      10, // hour (8 AM in 24-hour format)
+      24, // minute
     );
     // print('Scheduled date: $scheduledDate');
     print('Current date: $now');

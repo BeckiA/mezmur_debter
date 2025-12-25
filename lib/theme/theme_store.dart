@@ -25,7 +25,7 @@ final lightTheme = ThemeData(
 final darkTheme = ThemeData(
   brightness: Brightness.dark,
   dividerColor: AppColors.darkBorder,
-  primaryColor: AppColors.darkPrimary,
+  primaryColor: AppColors.primary,
   scaffoldBackgroundColor: AppColors.darkBackground,
   cardColor: AppColors.darkCard,
   textTheme: TextTheme(
@@ -33,7 +33,7 @@ final darkTheme = ThemeData(
     bodyMedium: TextStyle(color: AppColors.darkTextLight),
   ),
   colorScheme: ColorScheme.dark(
-    primary: AppColors.darkPrimary,
+    primary: AppColors.primary,
     secondary: AppColors.darkSecondary,
     error: AppColors.darkError,
   ),

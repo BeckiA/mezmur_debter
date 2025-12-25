@@ -8,6 +8,7 @@ import 'package:hymn_app/widgets/custom_app_bar.dart';
 import 'package:hymn_app/widgets/hymn_list_item.dart';
 import 'package:hymn_app/widgets/search_bar.dart';
 import 'package:hymn_app/providers/font_family_provider.dart';
+import 'package:hymn_app/providers/font_size_provider.dart';
 import 'package:provider/provider.dart';
 
 class HymnsScreen extends StatefulWidget {
@@ -124,15 +125,19 @@ class _HymnsScreenState extends State<HymnsScreen> {
                     ? Center(
                       child: Padding(
                         padding: const EdgeInsets.all(20.0),
-                        child: Text(
-                          searchQuery.isEmpty
-                              ? 'ምንም መዝሙር አልተገኘም'
-                              : 'ለ "$searchQuery" ምንም ውጤት አልተገኘም',
-                          style: TextStyle(
-                            fontFamily: fontFamilyProvider.fontFamily,
-                            fontSize: 18,
-                          ),
-                          textAlign: TextAlign.center,
+                        child: Consumer<FontSizeProvider>(
+                          builder: (context, fontSizeProvider, _) {
+                            return Text(
+                              searchQuery.isEmpty
+                                  ? 'ምንም መዝሙር አልተገኘም'
+                                  : 'ለ "$searchQuery" ምንም ውጤት አልተገኘም',
+                              style: TextStyle(
+                                fontFamily: fontFamilyProvider.fontFamily,
+                                fontSize: fontSizeProvider.fontSizeValue * 0.75, // 75% of base size
+                              ),
+                              textAlign: TextAlign.center,
+                            );
+                          },
                         ),
                       ),
                     )

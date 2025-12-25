@@ -76,7 +76,6 @@ class _HymnDetailScreenState extends State<HymnDetailScreen> {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final textTheme = theme.textTheme;
-    final fontSizeProvider = Provider.of<FontSizeProvider>(context);
     final fontFamilyProvider = Provider.of<FontFamilyProvider>(context);
 
     return SafeArea(
@@ -178,54 +177,62 @@ class _HymnDetailScreenState extends State<HymnDetailScreen> {
                 Expanded(
                   child: SingleChildScrollView(
                     padding: const EdgeInsets.all(20),
-                    child: Text(
-                      hymn!.lyrics,
-                      style: textTheme.bodyLarge?.copyWith(
-                        fontFamily: fontFamilyProvider.fontFamily,
-                        fontSize: fontSizeProvider.fontSizeValue,
-                        height: 1.6,
-                      ),
+                    child: Consumer<FontSizeProvider>(
+                      builder: (context, provider, _) {
+                        return Text(
+                          hymn!.lyrics,
+                          style: textTheme.bodyLarge?.copyWith(
+                            fontFamily: fontFamilyProvider.fontFamily,
+                            fontSize: provider.fontSizeValue,
+                            height: 1.6,
+                          ),
+                        );
+                      },
                     ),
                   ),
                 ),
 
                 // Font size controls
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 24,
-                    vertical: 12,
-                  ),
-                  decoration: BoxDecoration(
-                    border: Border(top: BorderSide(color: theme.dividerColor)),
-                    color: theme.cardColor,
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      IconButton(
-                        onPressed: () => _decreaseFontSize(fontSizeProvider),
-                        icon: Icon(
-                          Icons.remove_circle_outline,
-                          color: theme.iconTheme.color,
-                          size: 28,
-                        ),
+                Consumer<FontSizeProvider>(
+                  builder: (context, provider, _) {
+                    return Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 24,
+                        vertical: 12,
                       ),
-                      Text(
-                        'መጠን',
-                        style: textTheme.bodyLarge?.copyWith(
-                          fontFamily: fontFamilyProvider.fontFamily,
-                        ),
+                      decoration: BoxDecoration(
+                        border: Border(top: BorderSide(color: theme.dividerColor)),
+                        color: theme.cardColor,
                       ),
-                      IconButton(
-                        onPressed: () => _increaseFontSize(fontSizeProvider),
-                        icon: Icon(
-                          Icons.add_circle_outline,
-                          color: theme.iconTheme.color,
-                          size: 28,
-                        ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          IconButton(
+                            onPressed: () => _decreaseFontSize(provider),
+                            icon: Icon(
+                              Icons.remove_circle_outline,
+                              color: theme.iconTheme.color,
+                              size: 28,
+                            ),
+                          ),
+                          Text(
+                            'መጠን',
+                            style: textTheme.bodyLarge?.copyWith(
+                              fontFamily: fontFamilyProvider.fontFamily,
+                            ),
+                          ),
+                          IconButton(
+                            onPressed: () => _increaseFontSize(provider),
+                            icon: Icon(
+                              Icons.add_circle_outline,
+                              color: theme.iconTheme.color,
+                              size: 28,
+                            ),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
+                    );
+                  },
                 ),
               ],
             );

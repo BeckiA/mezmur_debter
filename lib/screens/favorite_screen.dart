@@ -7,6 +7,7 @@ import 'package:hymn_app/services/recent_hymns_service.dart';
 import 'package:hymn_app/widgets/custom_app_bar.dart';
 import 'package:hymn_app/widgets/hymn_list_item.dart';
 import 'package:hymn_app/providers/font_family_provider.dart';
+import 'package:hymn_app/providers/font_size_provider.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
 
@@ -78,59 +79,70 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                       return await showDialog<bool>(
                         context: context,
                         builder: (BuildContext context) {
-                          return AlertDialog(
-                            title: Text(
-                              'ተወዳጅ መዝሙር ማስወገድ',
-                              style: theme.textTheme.titleLarge?.copyWith(
-                                fontFamily: fontFamilyProvider.fontFamily,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            content: Text(
-                              'ይህን መዝሙር ከተወዳጅ መዝሙሮች ማስወገድ ይፈልጋሉ?',
-                              style: theme.textTheme.bodyMedium?.copyWith(
-                                fontFamily: fontFamilyProvider.fontFamily,
-                              ),
-                            ),
-                            actions: [
-                              TextButton(
-                                onPressed:
-                                    () => Navigator.of(context).pop(false),
-                                child: Text(
-                                  'ይቅር',
-                                  style: theme.textTheme.bodyMedium?.copyWith(
+                          return Consumer<FontSizeProvider>(
+                            builder: (context, fontSizeProvider, _) {
+                              return AlertDialog(
+                                title: Text(
+                                  'ተወዳጅ መዝሙር ማስወገድ',
+                                  style: theme.textTheme.titleLarge?.copyWith(
                                     fontFamily: fontFamilyProvider.fontFamily,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: fontSizeProvider.fontSizeValue * 1.0, // Full size for dialog title
                                   ),
                                 ),
-                              ),
-                              TextButton(
-                                onPressed:
-                                    () => Navigator.of(context).pop(true),
-                                child: Text(
-                                  'አስወግድ',
+                                content: Text(
+                                  'ይህን መዝሙር ከተወዳጅ መዝሙሮች ማስወገድ ይፈልጋሉ?',
                                   style: theme.textTheme.bodyMedium?.copyWith(
                                     fontFamily: fontFamilyProvider.fontFamily,
-                                    color: Colors.red,
+                                    fontSize: fontSizeProvider.fontSizeValue * 0.67, // 67% for dialog content
                                   ),
                                 ),
-                              ),
-                            ],
+                                actions: [
+                                  TextButton(
+                                    onPressed:
+                                        () => Navigator.of(context).pop(false),
+                                    child: Text(
+                                      'ይቅር',
+                                      style: theme.textTheme.bodyMedium?.copyWith(
+                                        fontFamily: fontFamilyProvider.fontFamily,
+                                        fontSize: fontSizeProvider.fontSizeValue * 0.67, // 67% for buttons
+                                      ),
+                                    ),
+                                  ),
+                                  TextButton(
+                                    onPressed:
+                                        () => Navigator.of(context).pop(true),
+                                    child: Text(
+                                      'አስወግድ',
+                                      style: theme.textTheme.bodyMedium?.copyWith(
+                                        fontFamily: fontFamilyProvider.fontFamily,
+                                        color: Colors.red,
+                                        fontSize: fontSizeProvider.fontSizeValue * 0.67, // 67% for buttons
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              );
+                            },
                           );
                         },
                       );
                     },
                     onDismissed: (direction) {
                       removeFavorite(hymn);
+                      final fontSizeProvider = Provider.of<FontSizeProvider>(context, listen: false);
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
                           content: Text(
                             '${hymn.title} ከተወዳጅ መዝሙሮች ተወግዷል',
-                            style: theme.textTheme.bodyMedium?.copyWith(
+                            style: TextStyle(
                               fontFamily: fontFamilyProvider.fontFamily,
+                              fontSize: fontSizeProvider.fontSizeValue * 0.67, // 67% for snackbar
                             ),
                           ),
                           action: SnackBarAction(
                             label: 'በድጋሚ ይመለስ',
+                            textColor: Colors.white,
                             onPressed: () async {
                               await FavoriteService.toggleFavorite(hymn.id);
                               if (mounted) {
@@ -160,70 +172,77 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                   );
                 },
               )
-              : Center(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 40),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        LucideIcons.heartOff,
-                        size: 60,
-                        color: theme.primaryColor,
-                      ),
-                      const SizedBox(height: 20),
-                      Text(
-                        'ምንም ተወዳጅ መዝሙሮች የሉም',
-                        style: theme.textTheme.headlineSmall?.copyWith(
-                          fontFamily: fontFamilyProvider.fontFamily,
-                          fontWeight: FontWeight.bold,
-                          height: 1.3,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'ተወዳጅ መዝሙሮችን ለመጨመር ልብ ምልክቱን ይጫኑ',
-                        style: theme.textTheme.bodyLarge?.copyWith(
-                          fontFamily: fontFamilyProvider.fontFamily,
-                          color: theme.textTheme.bodyLarge?.color?.withOpacity(
-                            0.7,
+              : Consumer<FontSizeProvider>(
+                builder: (context, fontSizeProvider, _) {
+                  return Center(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 40),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            LucideIcons.heartOff,
+                            size: 60,
+                            color: theme.primaryColor,
                           ),
-                          height: 1.5,
-                        ),
-                        textAlign: TextAlign.center,
+                          const SizedBox(height: 20),
+                          Text(
+                            'ምንም ተወዳጅ መዝሙሮች የሉም',
+                            style: theme.textTheme.headlineSmall?.copyWith(
+                              fontFamily: fontFamilyProvider.fontFamily,
+                              fontWeight: FontWeight.bold,
+                              height: 1.3,
+                              fontSize: fontSizeProvider.fontSizeValue * 1.25, // 1.25x for empty state title
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'ተወዳጅ መዝሙሮችን ለመጨመር ልብ ምልክቱን ይጫኑ',
+                            style: theme.textTheme.bodyLarge?.copyWith(
+                              fontFamily: fontFamilyProvider.fontFamily,
+                              color: theme.textTheme.bodyLarge?.color?.withOpacity(
+                                0.7,
+                              ),
+                              height: 1.5,
+                              fontSize: fontSizeProvider.fontSizeValue * 0.75, // 75% for description
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 24),
+                          ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: theme.primaryColor,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 20,
+                                vertical: 12,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
+                            onPressed: () {
+                              // Navigate to hymns tab (index 1)
+                              final tabLayout =
+                                  context.findAncestorStateOfType<TabLayoutState>();
+                              if (tabLayout != null) {
+                                tabLayout.navigateToTab(1);
+                              }
+                            },
+                            child: Text(
+                              'መዝሙሮችን ያስሱ',
+                              style: theme.textTheme.bodyLarge?.copyWith(
+                                fontFamily: fontFamilyProvider.fontFamily,
+                                color: Colors.white,
+                                fontSize: fontSizeProvider.fontSizeValue * 0.67, // 67% for button
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(height: 24),
-                      ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: theme.primaryColor,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 20,
-                            vertical: 12,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                        onPressed: () {
-                          // Navigate to hymns tab (index 1)
-                          final tabLayout =
-                              context.findAncestorStateOfType<TabLayoutState>();
-                          if (tabLayout != null) {
-                            tabLayout.navigateToTab(1);
-                          }
-                        },
-                        child: Text(
-                          'መዝሙሮችን ያስሱ',
-                          style: theme.textTheme.bodyLarge?.copyWith(
-                            fontFamily: fontFamilyProvider.fontFamily,
-                            color: theme.colorScheme.onPrimary,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+                    ),
+                  );
+                },
               ),
     );
   }

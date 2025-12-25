@@ -9,7 +9,7 @@
     <application
         android:label="Mezmur Debter"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/mezmur_debter_logo">
         <activity
             android:name=".MainActivity"
             android:exported="true"

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hymn_app/constants/app_colors.dart';
 import 'package:hymn_app/models/hymn.dart';
 import 'package:hymn_app/providers/font_family_provider.dart';
+import 'package:hymn_app/providers/font_size_provider.dart';
 import 'package:provider/provider.dart';
 
 class HymnListItem extends StatelessWidget {
@@ -21,7 +22,11 @@ class HymnListItem extends StatelessWidget {
     final theme = Theme.of(context);
     final fontFamilyProvider = Provider.of<FontFamilyProvider>(context);
 
-    return InkWell(
+    return Consumer<FontSizeProvider>(
+      builder: (context, fontSizeProvider, _) {
+        final baseFontSize = fontSizeProvider.fontSizeValue;
+        
+        return InkWell(
       onTap: onTap,
       splashColor: AppColors.primary.withOpacity(0.1),
       child: Container(
@@ -45,9 +50,11 @@ class HymnListItem extends StatelessWidget {
               margin: const EdgeInsets.only(right: 16),
               child: Text(
                 hymn.number?.toString() ?? hymn.id.toString(),
-                style: theme.textTheme.bodyLarge?.copyWith(
+                style: TextStyle(
                   fontFamily: fontFamilyProvider.fontFamily,
                   fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                  fontSize: baseFontSize * 0.67, // 67% of base size
                 ),
               ),
             ),
@@ -58,9 +65,11 @@ class HymnListItem extends StatelessWidget {
                 children: [
                   Text(
                     hymn.title,
-                    style: theme.textTheme.bodyLarge?.copyWith(
+                    style: TextStyle(
                       fontFamily: fontFamilyProvider.fontFamily,
                       fontWeight: FontWeight.bold,
+                      fontSize: baseFontSize * 0.67, // 67% of base size
+                      color: theme.textTheme.bodyLarge?.color,
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -68,9 +77,11 @@ class HymnListItem extends StatelessWidget {
                     hymn.firstLine,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.bodyMedium?.copyWith(
+                    style: TextStyle(
                       fontFamily: fontFamilyProvider.fontFamily,
                       fontWeight: FontWeight.bold,
+                      fontSize: baseFontSize * 0.58, // 58% of base size
+                      color: theme.textTheme.bodyMedium?.color,
                     ),
                   ),
                 ],
@@ -79,6 +90,8 @@ class HymnListItem extends StatelessWidget {
           ],
         ),
       ),
+    );
+      },
     );
   }
 }

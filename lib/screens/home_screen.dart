@@ -10,6 +10,7 @@ import 'package:hymn_app/widgets/hymn_preview.dart';
 import 'package:hymn_app/widgets/search_bar.dart' show SearchBarItem;
 import 'package:hymn_app/layouts/tab_layout.dart';
 import 'package:hymn_app/providers/font_family_provider.dart';
+import 'package:hymn_app/providers/font_size_provider.dart';
 import 'package:provider/provider.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -192,13 +193,18 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     elevation: 5,
                   ),
-                  child:  Text(
-                    'ሁሉንም መዝሙሮች ይመልከቱ',
-                     style: theme.textTheme.bodyLarge?.copyWith(
-                  fontFamily: fontFamilyProvider.fontFamily,
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
+                  child: Consumer<FontSizeProvider>(
+                    builder: (context, fontSizeProvider, _) {
+                      return Text(
+                        'ሁሉንም መዝሙሮች ይመልከቱ',
+                        style: theme.textTheme.bodyLarge?.copyWith(
+                          fontFamily: fontFamilyProvider.fontFamily,
+                          fontSize: fontSizeProvider.fontSizeValue * 0.67, // 67% of base size
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      );
+                    },
                   ),
                 ),
               ),
