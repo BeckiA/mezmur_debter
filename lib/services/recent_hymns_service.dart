@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/hymn.dart';
 import 'hymn_service.dart';
@@ -24,7 +23,10 @@ class RecentHymnsService {
         recentHymns = recentHymns.take(_maxRecentHymns).toList();
       }
 
-      await prefs.setStringList(_recentHymnsKey, recentHymns);
+      final success = await prefs.setStringList(_recentHymnsKey, recentHymns);
+      if (!success) {
+        print('Warning: Failed to save recent hymns to SharedPreferences');
+      }
     } catch (e) {
       print('Error adding recent hymn: $e');
     }
@@ -72,7 +74,10 @@ class RecentHymnsService {
       final prefs = await SharedPreferences.getInstance();
       List<String> recentHymns = prefs.getStringList(_recentHymnsKey) ?? [];
       recentHymns.remove(hymnId.toString());
-      await prefs.setStringList(_recentHymnsKey, recentHymns);
+      final success = await prefs.setStringList(_recentHymnsKey, recentHymns);
+      if (!success) {
+        print('Warning: Failed to save recent hymns to SharedPreferences');
+      }
     } catch (e) {
       print('Error removing recent hymn: $e');
     }

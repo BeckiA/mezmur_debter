@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:hymn_app/screens/Detail_Screens/hymn_detail_screen.dart';
 import 'package:hymn_app/services/bible_service.dart';
 import 'package:hymn_app/services/hymn_service.dart';
+import 'package:hymn_app/services/recent_hymns_service.dart';
 import 'package:hymn_app/models/hymn.dart';
 import 'package:hymn_app/widgets/custom_app_bar.dart';
 import 'package:hymn_app/widgets/daily_verse.dart' show DailyVerse;
@@ -51,10 +52,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _loadRecentHymns() async {
     try {
-      final allHymns = await HymnService.getAllHymns();
+      final recent = await RecentHymnsService.getRecentHymns(limit: 3);
       setState(() {
-        // Take first 3 hymns as recent hymns
-        recentHymns = allHymns.take(3).toList();
+        recentHymns = recent;
       });
     } catch (e) {
       print('Error loading recent hymns: $e');
@@ -94,11 +94,18 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
-  void _navigateToHymn(BuildContext context, int hymnId) {
-    Navigator.push(
+  void _navigateToHymn(BuildContext context, int hymnId) async {
+    // Add to recent hymns before navigating
+    await RecentHymnsService.addRecentHymn(hymnId);
+    
+    // Navigate to detail screen
+    await Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => HymnDetailScreen(hymnId: hymnId)),
     );
+    
+    // Reload recent hymns when returning from detail screen
+    _loadRecentHymns();
   }
 
   @override
