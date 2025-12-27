@@ -1,12 +1,15 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:timezone/timezone.dart' as tz;
 import 'package:timezone/data/latest.dart' as tz;
+import 'package:hymn_app/layouts/tab_layout.dart';
 
 class NotificationService {
   static final NotificationService _instance = NotificationService._internal();
   final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
       FlutterLocalNotificationsPlugin();
+  static GlobalKey<NavigatorState>? navigatorKey;
 
   factory NotificationService() {
     return _instance;
@@ -33,7 +36,23 @@ class NotificationService {
       iOS: initializationSettingsIOS,
     );
 
-    await flutterLocalNotificationsPlugin.initialize(initializationSettings);
+    await flutterLocalNotificationsPlugin.initialize(
+      initializationSettings,
+      onDidReceiveNotificationResponse: _onNotificationTapped,
+    );
+  }
+
+  static void _onNotificationTapped(NotificationResponse response) {
+    // Handle notification tap or action
+    if (response.actionId == 'read_action' || response.actionId == null) {
+      // Navigate to hymn screen (tab index 1)
+      if (navigatorKey?.currentState != null) {
+        navigatorKey!.currentState!.pushAndRemoveUntil(
+          MaterialPageRoute(builder: (context) => TabLayout(initialIndex: 1)),
+          (route) => false,
+        );
+      }
+    }
   }
 
   /// Check if notification permission is granted
@@ -82,7 +101,22 @@ class NotificationService {
   }
 
   Future<void> scheduleDailyNotification([String verse = ""]) async {
-    const AndroidNotificationDetails androidPlatformChannelSpecifics =
+    // Create action buttons
+    const readAction = AndroidNotificationAction(
+      'read_action',
+      'አንብብ',
+      showsUserInterface: true,
+    );
+
+    // Create BigTextStyleInformation for expanded notification
+    final bigTextStyleInformation = BigTextStyleInformation(
+      verse.isNotEmpty ? verse : "Stay inspired with daily verses!",
+      contentTitle: 'የዕለቱ የመጽሐፍ ቅዱስ ጥቅስ',
+      htmlFormatBigText: true,
+      summaryText: 'የዕለቱ ጥቅስ',
+    );
+
+    final AndroidNotificationDetails androidPlatformChannelSpecifics =
         AndroidNotificationDetails(
       'daily_verse_channel_id',
       'Daily Verse Notifications',
@@ -91,6 +125,8 @@ class NotificationService {
       priority: Priority.max,
       showWhen: true,
       icon: 'notification_icon',
+      styleInformation: bigTextStyleInformation,
+      actions: [readAction],
     );
 
     const DarwinNotificationDetails iOSPlatformChannelSpecifics =
@@ -98,9 +134,10 @@ class NotificationService {
       presentAlert: true,
       presentBadge: true,
       presentSound: true,
+      categoryIdentifier: 'daily_verse_category',
     );
 
-    const NotificationDetails platformChannelSpecifics =
+    final NotificationDetails platformChannelSpecifics =
         NotificationDetails(
       android: androidPlatformChannelSpecifics,
       iOS: iOSPlatformChannelSpecifics,
@@ -147,12 +184,43 @@ class NotificationService {
     } catch (e) {
       print('Error scheduling notification: $e');
       // Fallback to inexact scheduling
+      // Create BigTextStyleInformation for fallback
+      final fallbackBigTextStyleInformation = BigTextStyleInformation(
+        verse.isNotEmpty ? verse : "Stay inspired with daily verses!",
+        contentTitle: 'የዕለቱ የመጽሐፍ ቅዱስ ጥቅስ',
+        htmlFormatBigText: true,
+        summaryText: 'የዕለቱ ጥቅስ',
+      );
+
+      const fallbackReadAction = AndroidNotificationAction(
+        'read_action',
+        'አንብብ',
+        showsUserInterface: true,
+      );
+
+      final fallbackAndroidDetails = AndroidNotificationDetails(
+        'daily_verse_channel_id',
+        'Daily Verse Notifications',
+        channelDescription: 'Receive a daily Bible verse notification',
+        importance: Importance.max,
+        priority: Priority.max,
+        showWhen: true,
+        icon: 'notification_icon',
+        styleInformation: fallbackBigTextStyleInformation,
+        actions: [fallbackReadAction],
+      );
+
+      final fallbackNotificationDetails = NotificationDetails(
+        android: fallbackAndroidDetails,
+        iOS: iOSPlatformChannelSpecifics,
+      );
+
       await flutterLocalNotificationsPlugin.zonedSchedule(
         0,
-        'Verse of the Day',
+        'የዕለቱ የመጽሐፍ ቅዱስ ጥቅስ',
         verse.isNotEmpty ? verse : "Stay inspired with daily verses!",
         scheduledDate,
-        platformChannelSpecifics,
+        fallbackNotificationDetails,
         androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
         matchDateTimeComponents: DateTimeComponents.time,
       );

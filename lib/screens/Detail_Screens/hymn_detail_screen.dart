@@ -7,6 +7,7 @@ import 'package:hymn_app/services/hymn_service.dart';
 import 'package:hymn_app/services/recent_hymns_service.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
 
 class HymnDetailScreen extends StatefulWidget {
   final int hymnId;
@@ -26,6 +27,15 @@ class _HymnDetailScreenState extends State<HymnDetailScreen> {
   void initState() {
     super.initState();
     _loadData = _fetchHymnData();
+    // Enable wakelock to keep screen on while viewing hymn
+    WakelockPlus.enable();
+  }
+
+  @override
+  void dispose() {
+    // Disable wakelock when leaving the screen
+    WakelockPlus.disable();
+    super.dispose();
   }
 
   Future<void> _fetchHymnData() async {

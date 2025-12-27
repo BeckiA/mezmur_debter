@@ -3,6 +3,7 @@ import 'package:lucide_icons/lucide_icons.dart' show LucideIcons;
 import 'package:hymn_app/providers/font_family_provider.dart';
 import 'package:hymn_app/providers/font_size_provider.dart';
 import 'package:provider/provider.dart';
+import 'package:share_plus/share_plus.dart';
 
 class DailyVerse extends StatelessWidget {
   final Map<String, String> verse;
@@ -10,8 +11,13 @@ class DailyVerse extends StatelessWidget {
   const DailyVerse({super.key, required this.verse});
 
   void shareVerse() {
-    // You can use the `share_plus` package for actual sharing
-    debugPrint('Sharing verse: ${verse['text']} - ${verse['reference']}');
+    final verseText = verse['text'] ?? '';
+    final reference = verse['reference'] ?? '';
+    
+    // Format: verse text in quotes, then reference with em dash
+    final shareText = '"$verseText"\n\n — $reference';
+    
+    Share.share(shareText);
   }
 
   @override

@@ -102,7 +102,7 @@ class _HymnsScreenState extends State<HymnsScreen> {
     final fontFamilyProvider = Provider.of<FontFamilyProvider>(context);
 
     return Scaffold(
-      appBar: const CustomAppBar(title: 'መዝሙሮች', subtitle: 'ሁሉም መዝሙሮች'),
+      appBar: const CustomAppBar(title: 'መዝሙሮች'),
       body: Column(
         children: [
           AnimatedOpacity(

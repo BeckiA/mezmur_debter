@@ -73,13 +73,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
         _buildSettingItem(
           theme: theme,
           icon:
-              themeProvider.themeMode == ThemeMode.dark
+              theme.brightness == Brightness.dark
                   ? LucideIcons.moon
                   : LucideIcons.sun,
           label: 'ጨለማ ገጽታ',
           fontFamilyProvider: fontFamilyProvider,
           trailing: FlutterSwitch(
-            value: themeProvider.themeMode == ThemeMode.dark,
+            value: theme.brightness == Brightness.dark,
             onToggle: (value) => themeProvider.toggleTheme(),
             activeColor: theme.primaryColor,
             inactiveColor: theme.unselectedWidgetColor,
@@ -825,9 +825,9 @@ class _AboutBottomSheet extends StatelessWidget {
                           ),
                           const SizedBox(height: 12),
                           Text(
-                            '• ምንም የተጠቃሚ ውሂብ አንሰብራም\n'
-                            '• ምንም ማስታወቂያዎች የሉም\n'
-                            '• የክህደት መዳረሻ የሚያስፈልገው የቅርብ ጊዜ መዝሙሮችን ለመከታተል ብቻ ነው',
+                            '• መተግበርያው ምንም አይነት የተጠቃሚ መረጃ አይሰበስብም\n'
+                            '• በመተግበርያው ምንም አይነት የሶስተኛ ወገን ማስታወቂያዎች የሉም\n'
+                            '• መተግበርያው የስልኩን ማከማቻ የሚጠቀመው የቅርብ ጊዜ መዝሙሮችን ለመከታተል ብቻ ነው',
                             style: theme.textTheme.bodyMedium?.copyWith(
                               fontFamily: fontFamilyProvider.fontFamily,
                               fontSize: baseFontSize * 0.67,

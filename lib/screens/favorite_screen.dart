@@ -20,6 +20,7 @@ class FavoritesScreen extends StatefulWidget {
 
 class _FavoritesScreenState extends State<FavoritesScreen> {
   List<Hymn> favorites = [];
+  bool isLoading = true;
 
   @override
   void initState() {
@@ -32,6 +33,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
     if (mounted) {
       setState(() {
         favorites = favHymns;
+        isLoading = false;
       });
     }
   }
@@ -50,8 +52,24 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
     final theme = Theme.of(context);
     final fontFamilyProvider = Provider.of<FontFamilyProvider>(context);
 
+    if (isLoading) {
+      return Scaffold(
+        appBar: const CustomAppBar(title: 'ተወዳጅ መዝሙሮች'),
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const CircularProgressIndicator(),
+              const SizedBox(height: 16),
+              Text('እባክዎን ይጠብቁ...', style: theme.textTheme.bodyLarge),
+            ],
+          ),
+        ),
+      );
+    }
+
     return Scaffold(
-      appBar: const CustomAppBar(title: 'ተወዳጅ መዝሙሮች', subtitle: 'የተመረጡ መዝሙሮች'),
+      appBar: const CustomAppBar(title: 'ተወዳጅ መዝሙሮች'),
       body:
           favorites.isNotEmpty
               ? ListView.builder(

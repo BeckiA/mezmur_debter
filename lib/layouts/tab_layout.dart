@@ -8,6 +8,10 @@ import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
 
 class TabLayout extends StatefulWidget {
+  final int? initialIndex;
+  
+  const TabLayout({super.key, this.initialIndex});
+
   @override
   TabLayoutState createState() => TabLayoutState();
 }
@@ -29,7 +33,9 @@ class TabLayoutState extends State<TabLayout> {
   @override
   void initState() {
     super.initState();
-    _pageController = PageController();
+    final initialIndex = widget.initialIndex ?? 0;
+    _selectedIndex = initialIndex;
+    _pageController = PageController(initialPage: initialIndex);
   }
 
   @override

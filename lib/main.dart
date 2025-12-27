@@ -17,6 +17,11 @@ void main() async {
   tz.initializeTimeZones();
   final location = TZDateTime.now(local);
   print('Current time zone: ${location}');
+  
+  // Set up navigator key for notification navigation
+  final navigatorKey = GlobalKey<NavigatorState>();
+  NotificationService.navigatorKey = navigatorKey;
+  
   await NotificationService().init();
   
   // Initialize notification provider and wait for it to load preferences
@@ -61,6 +66,7 @@ class MyApp extends StatelessWidget {
     final themeProvider = Provider.of<ThemeProvider>(context);
     return MaterialApp(
       title: 'Hymn App',
+      navigatorKey: NotificationService.navigatorKey,
       home: TabLayout(),
       darkTheme: darkTheme,
       theme: lightTheme,

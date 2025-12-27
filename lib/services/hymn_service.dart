@@ -57,7 +57,7 @@ class HymnService {
     }
   }
 
-  // Search hymns
+  // Search hymns - only searches in title and search terms
   static Future<List<Hymn>> searchHymns(String query) async {
     await _loadHymns();
     if (_hymns == null) return [];
@@ -85,32 +85,15 @@ class HymnService {
       // Check if all query words are in title
       if (queryWords.every((word) => titleLower.contains(word))) return true;
 
-      // Search in first line (priority 2) - Amharic text
-      final firstLineLower = hymn.firstLine;
-      if (firstLineLower.contains(lowercaseQuery)) return true;
-
-      // Check if all query words are in first line
-      if (queryWords.every((word) => firstLineLower.contains(word)))
-        return true;
-
-      // Search in search terms (priority 3) - Amharic text
+      // Search in search terms - Amharic text
       if (hymn.searchTerms != null) {
         for (String term in hymn.searchTerms!) {
-          final termLower = term;
+          final termLower = term.toLowerCase();
           if (termLower.contains(lowercaseQuery)) return true;
 
           // Check if all query words are in any search term
           if (queryWords.every((word) => termLower.contains(word))) return true;
         }
-      }
-
-      // Search in lyrics (priority 4) - Amharic text, only for longer queries
-      if (lowercaseQuery.length > 2) {
-        final lyricsLower = hymn.lyrics;
-        if (lyricsLower.contains(lowercaseQuery)) return true;
-
-        // Check if all query words are in lyrics
-        if (queryWords.every((word) => lyricsLower.contains(word))) return true;
       }
 
       return false;
