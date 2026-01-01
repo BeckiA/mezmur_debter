@@ -48,7 +48,7 @@ class NotificationService {
       // Navigate to hymn screen (tab index 1)
       if (navigatorKey?.currentState != null) {
         navigatorKey!.currentState!.pushAndRemoveUntil(
-          MaterialPageRoute(builder: (context) => TabLayout(initialIndex: 1)),
+          MaterialPageRoute(builder: (context) => TabLayout(initialIndex: 0)),
           (route) => false,
         );
       }
@@ -100,7 +100,7 @@ class NotificationService {
     }
   }
 
-  Future<void> scheduleDailyNotification([String verse = ""]) async {
+  Future<void> scheduleDailyNotification([String verse = "", String reference = ""]) async {
     // Create action buttons
     const readAction = AndroidNotificationAction(
       'read_action',
@@ -108,12 +108,17 @@ class NotificationService {
       showsUserInterface: true,
     );
 
+    // Format the content title with reference if available
+    String contentTitle = 'የዕለቱ የመጽሐፍ ቅዱስ ጥቅስ';
+    if (reference.isNotEmpty) {
+      contentTitle = '$contentTitle - $reference';
+    }
+
     // Create BigTextStyleInformation for expanded notification
     final bigTextStyleInformation = BigTextStyleInformation(
       verse.isNotEmpty ? verse : "Stay inspired with daily verses!",
-      contentTitle: 'የዕለቱ የመጽሐፍ ቅዱስ ጥቅስ',
+      contentTitle: contentTitle,
       htmlFormatBigText: true,
-      summaryText: 'የዕለቱ ጥቅስ',
     );
 
     final AndroidNotificationDetails androidPlatformChannelSpecifics =
@@ -165,7 +170,7 @@ class NotificationService {
       print('Exact alarm permission granted: $hasExactPermission');
       await flutterLocalNotificationsPlugin.zonedSchedule(
         0,
-        'የዕለቱ የመጽሐፍ ቅዱስ ጥቅስ',
+        contentTitle,
         verse.isNotEmpty ? verse : "Stay inspired with daily verses!",
         scheduledDate,
         platformChannelSpecifics,
@@ -184,10 +189,16 @@ class NotificationService {
     } catch (e) {
       print('Error scheduling notification: $e');
       // Fallback to inexact scheduling
+      // Format the content title with reference if available
+      String fallbackContentTitle = 'የዕለቱ የመጽሐፍ ቅዱስ ጥቅስ';
+      if (reference.isNotEmpty) {
+        fallbackContentTitle = '$fallbackContentTitle - $reference';
+      }
+      
       // Create BigTextStyleInformation for fallback
       final fallbackBigTextStyleInformation = BigTextStyleInformation(
         verse.isNotEmpty ? verse : "Stay inspired with daily verses!",
-        contentTitle: 'የዕለቱ የመጽሐፍ ቅዱስ ጥቅስ',
+        contentTitle: fallbackContentTitle,
         htmlFormatBigText: true,
         summaryText: 'የዕለቱ ጥቅስ',
       );
@@ -217,7 +228,7 @@ class NotificationService {
 
       await flutterLocalNotificationsPlugin.zonedSchedule(
         0,
-        'የዕለቱ የመጽሐፍ ቅዱስ ጥቅስ',
+        fallbackContentTitle,
         verse.isNotEmpty ? verse : "Stay inspired with daily verses!",
         scheduledDate,
         fallbackNotificationDetails,

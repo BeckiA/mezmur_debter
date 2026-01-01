@@ -22,40 +22,28 @@ class DailyVerseNotificationService {
       // Get the verse of the day - same method used in home_screen.dart
       final verse = await BibleService.getVerseOfDay();
 
-      // Format the verse text for notification
-      // Combine the verse text and reference
-      final notificationText = _formatVerseForNotification(verse);
+      // Extract verse text and reference separately
+      final verseText = verse['text'] ?? '';
+      final reference = verse['reference'] ?? '';
 
-      // Schedule the daily notification with the verse
-      await NotificationService().scheduleDailyNotification(notificationText);
+      // Schedule the daily notification with verse text and reference
+      // Reference will appear in the title, verse text in the body
+      await NotificationService().scheduleDailyNotification(
+        verseText.isNotEmpty ? verseText : "Stay inspired with daily verses!",
+        reference,
+      );
 
       print('Daily verse notification initialized successfully');
-      print('Verse: ${verse['text']}');
-      print('Reference: ${verse['reference']}');
+      print('Verse: $verseText');
+      print('Reference: $reference');
     } catch (e) {
       print('Error initializing daily verse notification: $e');
       // Schedule a default notification if there's an error
       await NotificationService().scheduleDailyNotification(
         "Stay inspired with daily verses!",
+        "",
       );
     }
-  }
-
-  /// Formats the verse map into a notification-friendly string
-  /// Combines the verse text and reference
-  String _formatVerseForNotification(Map<String, String> verse) {
-    final text = verse['text'] ?? '';
-    final reference = verse['reference'] ?? '';
-    
-    if (text.isEmpty && reference.isEmpty) {
-      return "Stay inspired with daily verses!";
-    }
-    
-    if (reference.isNotEmpty) {
-      return "$text\n\n$reference";
-    }
-    
-    return text;
   }
 
   /// Checks if the daily verse notification is already scheduled

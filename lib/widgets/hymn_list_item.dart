@@ -49,7 +49,7 @@ class HymnListItem extends StatelessWidget {
               alignment: Alignment.center,
               margin: const EdgeInsets.only(right: 16),
               child: Text(
-                hymn.number?.toString() ?? hymn.id.toString(),
+                ((hymn.number ?? hymn.id) + 5).toString(),
                 style: TextStyle(
                   fontFamily: fontFamilyProvider.fontFamily,
                   fontWeight: FontWeight.bold,

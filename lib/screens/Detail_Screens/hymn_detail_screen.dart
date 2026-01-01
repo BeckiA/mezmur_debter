@@ -5,6 +5,7 @@ import 'package:hymn_app/providers/font_family_provider.dart';
 import 'package:hymn_app/services/favorite_service.dart';
 import 'package:hymn_app/services/hymn_service.dart';
 import 'package:hymn_app/services/recent_hymns_service.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
@@ -63,6 +64,26 @@ class _HymnDetailScreenState extends State<HymnDetailScreen> {
     });
   }
 
+  void _shareHymn() {
+    if (hymn == null) return;
+    
+    // Ensure we have the full lyrics text
+    final lyricsText = hymn!.lyrics;
+    final titleText = hymn!.title;
+    
+    // Construct the share text with proper formatting
+    final shareText = StringBuffer();
+    shareText.writeln(titleText);
+    shareText.writeln(); // Empty line
+    shareText.write(lyricsText);
+    
+    // Share with subject for better formatting
+    Share.share(
+      shareText.toString(),
+      subject: titleText,
+    );
+  }
+
   void _increaseFontSize(FontSizeProvider fontSizeProvider) {
     final currentSize = fontSizeProvider.fontSize;
     if (currentSize == 'small') {
@@ -88,166 +109,162 @@ class _HymnDetailScreenState extends State<HymnDetailScreen> {
     final textTheme = theme.textTheme;
     final fontFamilyProvider = Provider.of<FontFamilyProvider>(context);
 
-    return SafeArea(
-      child: Scaffold(
-        backgroundColor: theme.scaffoldBackgroundColor,
-        body: FutureBuilder(
-          future: _loadData,
-          builder: (context, snapshot) {
-            if (snapshot.connectionState != ConnectionState.done) {
-              return Center(
-                child: Text(
-                  'እባክዎን ይጠብቁ...',
-                  style: textTheme.bodyLarge?.copyWith(
-                    fontFamily: fontFamilyProvider.fontFamily,
+    return Scaffold(
+      backgroundColor: theme.scaffoldBackgroundColor,
+      body: FutureBuilder(
+        future: _loadData,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState != ConnectionState.done) {
+            return Center(
+              child: Text(
+                'እባክዎን ይጠብቁ...',
+                style: textTheme.bodyLarge?.copyWith(
+                  fontFamily: fontFamilyProvider.fontFamily,
+                ),
+              ),
+            );
+          }
+    
+          if (hymn == null) {
+            return Center(
+              child: Text(
+                'መዝሙሩ አልተገኘም።',
+                style: textTheme.bodyLarge?.copyWith(
+                  fontFamily: fontFamilyProvider.fontFamily,
+                ),
+              ),
+            );
+          }
+    
+          return Column(
+            children: [
+              // Header
+              Container(
+                padding: const EdgeInsets.fromLTRB(16, 20, 16, 16),
+                decoration: BoxDecoration(
+                  border: Border(
+                    bottom: BorderSide(color: theme.dividerColor),
                   ),
                 ),
-              );
-            }
-
-            if (hymn == null) {
-              return Center(
-                child: Text(
-                  'መዝሙሩ አልተገኘም።',
-                  style: textTheme.bodyLarge?.copyWith(
-                    fontFamily: fontFamilyProvider.fontFamily,
-                  ),
-                ),
-              );
-            }
-
-            return Column(
-              children: [
-                // Header
-                Container(
-                  padding: const EdgeInsets.fromLTRB(16, 20, 16, 16),
-                  decoration: BoxDecoration(
-                    border: Border(
-                      bottom: BorderSide(color: theme.dividerColor),
+                child: Row(
+                  children: [
+                    IconButton(
+                      icon: Icon(
+                        LucideIcons.arrowLeft,
+                        color: theme.iconTheme.color,
+                      ),
+                      onPressed: () => Navigator.of(context).pop(),
                     ),
-                  ),
-                  child: Row(
-                    children: [
-                      IconButton(
-                        icon: Icon(
-                          Icons.arrow_back,
-                          color: theme.iconTheme.color,
-                        ),
-                        onPressed: () => Navigator.of(context).pop(),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'መዝሙር ${hymn!.id}',
-                              style: textTheme.bodyMedium?.copyWith(
-                                fontFamily: fontFamilyProvider.fontFamily,
-                                color: theme.hintColor,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              hymn!.title,
-                              style: textTheme.titleMedium?.copyWith(
-                                fontFamily: fontFamilyProvider.fontFamily,
-                                fontWeight: FontWeight.bold,
-                              ),
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ],
-                        ),
-                      ),
-                      IconButton(
-                        icon: Icon(Icons.share, color: theme.iconTheme.color),
-                        onPressed: () {
-                          Share.share('${hymn!.title}\n\n${hymn!.lyrics}');
-                        },
-                      ),
-                      GestureDetector(
-                        onTap: _toggleFavorite,
-                        child: AnimatedScale(
-                          scale: isAnimating ? 1.3 : 1.0,
-                          duration: const Duration(milliseconds: 300),
-                          child: Icon(
-                            isFavorite ? Icons.favorite : Icons.favorite_border,
-                            color:
-                                isFavorite
-                                    ? colorScheme.primary
-                                    : theme.iconTheme.color,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                // Content
-                Expanded(
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.all(20),
-                    child: Consumer<FontSizeProvider>(
-                      builder: (context, provider, _) {
-                        return Text(
-                          hymn!.lyrics,
-                          style: textTheme.bodyLarge?.copyWith(
-                            fontFamily: fontFamilyProvider.fontFamily,
-                            fontSize: provider.fontSizeValue,
-                            height: 1.6,
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                ),
-
-                // Font size controls
-                Consumer<FontSizeProvider>(
-                  builder: (context, provider, _) {
-                    return Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 24,
-                        vertical: 12,
-                      ),
-                      decoration: BoxDecoration(
-                        border: Border(top: BorderSide(color: theme.dividerColor)),
-                        color: theme.cardColor,
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          IconButton(
-                            onPressed: () => _decreaseFontSize(provider),
-                            icon: Icon(
-                              Icons.remove_circle_outline,
-                              color: theme.iconTheme.color,
-                              size: 28,
-                            ),
-                          ),
                           Text(
-                            'መጠን',
-                            style: textTheme.bodyLarge?.copyWith(
+                            'መዝሙር ${hymn!.id}',
+                            style: textTheme.bodyMedium?.copyWith(
                               fontFamily: fontFamilyProvider.fontFamily,
+                              color: theme.hintColor,
                             ),
                           ),
-                          IconButton(
-                            onPressed: () => _increaseFontSize(provider),
-                            icon: Icon(
-                              Icons.add_circle_outline,
-                              color: theme.iconTheme.color,
-                              size: 28,
+                          const SizedBox(height: 4),
+                          Text(
+                            hymn!.title,
+                            style: textTheme.titleMedium?.copyWith(
+                              fontFamily: fontFamilyProvider.fontFamily,
+                              fontWeight: FontWeight.bold,
                             ),
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ],
                       ),
-                    );
-                  },
+                    ),
+                    IconButton(
+                      icon: Icon(LucideIcons.share2, color: theme.iconTheme.color),
+                      onPressed: _shareHymn,
+                    ),
+                    GestureDetector(
+                      onTap: _toggleFavorite,
+                      child: AnimatedScale(
+                        scale: isAnimating ? 1.3 : 1.0,
+                        duration: const Duration(milliseconds: 300),
+                        child: Icon(
+                          isFavorite ? Icons.favorite : Icons.favorite_border,
+                          color:
+                              isFavorite
+                                  ? colorScheme.primary
+                                  : theme.iconTheme.color,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            );
-          },
-        ),
+              ),
+    
+              // Content
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(20),
+                  child: Consumer<FontSizeProvider>(
+                    builder: (context, provider, _) {
+                      return Text(
+                        hymn!.lyrics,
+                        style: textTheme.bodyLarge?.copyWith(
+                          fontFamily: fontFamilyProvider.fontFamily,
+                          fontSize: provider.fontSizeValue,
+                          height: 1.6,
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ),
+    
+              // Font size controls
+              Consumer<FontSizeProvider>(
+                builder: (context, provider, _) {
+                  return Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 12,
+                    ),
+                    decoration: BoxDecoration(
+                      border: Border(top: BorderSide(color: theme.dividerColor)),
+                      color: theme.cardColor,
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        IconButton(
+                          onPressed: () => _decreaseFontSize(provider),
+                          icon: Icon(
+                            LucideIcons.minusCircle,
+                            color: theme.iconTheme.color,
+                            size: 28,
+                          ),
+                        ),
+                        Text(
+                          'መጠን',
+                          style: textTheme.bodyLarge?.copyWith(
+                            fontFamily: fontFamilyProvider.fontFamily,
+                          ),
+                        ),
+                        IconButton(
+                          onPressed: () => _increaseFontSize(provider),
+                          icon: Icon(
+                            LucideIcons.plusCircle,
+                            color: theme.iconTheme.color,
+                            size: 28,
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+            ],
+          );
+        },
       ),
     );
   }

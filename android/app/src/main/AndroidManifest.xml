@@ -7,7 +7,7 @@
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM"/>
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
     <application
-        android:label="Mezmur Debter"
+        android:label="መዝሙር ደብተር"
         android:name="${applicationName}"
         android:icon="@mipmap/mezmur_debter_logo">
         <activity

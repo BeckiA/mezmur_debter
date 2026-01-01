@@ -40,10 +40,9 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
 
   Future<void> removeFavorite(Hymn hymn) async {
     await FavoriteService.toggleFavorite(hymn.id);
+    // Reload from storage to ensure consistency
     if (mounted) {
-      setState(() {
-        favorites.removeWhere((h) => h.id == hymn.id);
-      });
+      loadFavorites();
     }
   }
 
@@ -178,13 +177,20 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                         // Add to recent hymns when navigating
                         await RecentHymnsService.addRecentHymn(hymn.id);
 
-                        Navigator.push(
+                        // Navigate to detail screen and reload favorites when returning
+                        await Navigator.push(
                           context,
                           MaterialPageRoute(
                             builder:
                                 (context) => HymnDetailScreen(hymnId: hymn.id),
                           ),
                         );
+                        
+                        // Reload favorites when returning from detail screen
+                        // This ensures the list reflects any changes made in the detail screen
+                        if (mounted) {
+                          loadFavorites();
+                        }
                       },
                     ),
                   );
