@@ -100,7 +100,13 @@ class NotificationService {
     }
   }
 
-  Future<void> scheduleDailyNotification([String verse = "", String reference = ""]) async {
+  /// Schedule a single notification for a specific date and time
+  Future<void> scheduleNotificationForDate(
+    int notificationId,
+    tz.TZDateTime scheduledDate,
+    String verse,
+    String reference,
+  ) async {
     // Create action buttons
     const readAction = AndroidNotificationAction(
       'read_action',
@@ -148,28 +154,10 @@ class NotificationService {
       iOS: iOSPlatformChannelSpecifics,
     );
 
-    final tz.TZDateTime now = tz.TZDateTime.now(tz.local);
-    tz.TZDateTime scheduledDate = tz.TZDateTime(
-      tz.local, // Use UTC+3 time zone
-      now.year,
-      now.month,
-      now.day,
-      10, // hour (8 AM in 24-hour format)
-      24, // minute
-    );
-    // print('Scheduled date: $scheduledDate');
-    print('Current date: $now');
-    print("Local time zone: ${tz.local}");
-    if (scheduledDate.isBefore(now)) {
-      print('Scheduled date is before now, adding one day');
-      scheduledDate = scheduledDate.add(const Duration(days: 1));
-    }
-
     try {
       final hasExactPermission = await _checkExactAlarmPermission();
-      print('Exact alarm permission granted: $hasExactPermission');
       await flutterLocalNotificationsPlugin.zonedSchedule(
-        0,
+        notificationId,
         contentTitle,
         verse.isNotEmpty ? verse : "Stay inspired with daily verses!",
         scheduledDate,
@@ -177,70 +165,46 @@ class NotificationService {
         androidScheduleMode: hasExactPermission
             ? AndroidScheduleMode.exactAllowWhileIdle
             : AndroidScheduleMode.inexactAllowWhileIdle,
-        matchDateTimeComponents: DateTimeComponents.time,
       );
-
-      final isScheduled = await checkNotificationScheduled();
-      if (isScheduled) {
-        print('Notification scheduled successfully!');
-      } else {
-        print('Failed to schedule notification.');
-      }
     } catch (e) {
-      print('Error scheduling notification: $e');
-      // Fallback to inexact scheduling
-      // Format the content title with reference if available
-      String fallbackContentTitle = 'የዕለቱ የመጽሐፍ ቅዱስ ጥቅስ';
-      if (reference.isNotEmpty) {
-        fallbackContentTitle = '$fallbackContentTitle - $reference';
-      }
-      
-      // Create BigTextStyleInformation for fallback
-      final fallbackBigTextStyleInformation = BigTextStyleInformation(
-        verse.isNotEmpty ? verse : "Stay inspired with daily verses!",
-        contentTitle: fallbackContentTitle,
-        htmlFormatBigText: true,
-        summaryText: 'የዕለቱ ጥቅስ',
-      );
-
-      const fallbackReadAction = AndroidNotificationAction(
-        'read_action',
-        'አንብብ',
-        showsUserInterface: true,
-      );
-
-      final fallbackAndroidDetails = AndroidNotificationDetails(
-        'daily_verse_channel_id',
-        'Daily Verse Notifications',
-        channelDescription: 'Receive a daily Bible verse notification',
-        importance: Importance.max,
-        priority: Priority.max,
-        showWhen: true,
-        icon: 'notification_icon',
-        styleInformation: fallbackBigTextStyleInformation,
-        actions: [fallbackReadAction],
-      );
-
-      final fallbackNotificationDetails = NotificationDetails(
-        android: fallbackAndroidDetails,
-        iOS: iOSPlatformChannelSpecifics,
-      );
-
+      print('Error scheduling notification $notificationId: $e');
+      // Fallback scheduling without exact alarm
       await flutterLocalNotificationsPlugin.zonedSchedule(
-        0,
-        fallbackContentTitle,
+        notificationId,
+        contentTitle,
         verse.isNotEmpty ? verse : "Stay inspired with daily verses!",
         scheduledDate,
-        fallbackNotificationDetails,
+        platformChannelSpecifics,
         androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
-        matchDateTimeComponents: DateTimeComponents.time,
       );
     }
+  }
+
+  /// Legacy method kept for backward compatibility
+  /// Now delegates to scheduleNotificationForDate for a single notification
+  Future<void> scheduleDailyNotification([String verse = "", String reference = ""]) async {
+    final tz.TZDateTime now = tz.TZDateTime.now(tz.local);
+    tz.TZDateTime scheduledDate = tz.TZDateTime(
+      tz.local,
+      now.year,
+      now.month,
+      now.day,
+      10, // hour (10 AM in 24-hour format)
+      24, // minute
+    );
+    
+    if (scheduledDate.isBefore(now)) {
+      scheduledDate = scheduledDate.add(const Duration(days: 1));
+    }
+
+    await scheduleNotificationForDate(0, scheduledDate, verse, reference);
+    print('Daily verse notification scheduled for: $scheduledDate');
   }
 
   Future<bool> checkNotificationScheduled() async {
     final pending =
         await flutterLocalNotificationsPlugin.pendingNotificationRequests();
-    return pending.any((notification) => notification.id == 0);
+    // Check if any daily verse notifications are scheduled (IDs 0-29)
+    return pending.any((notification) => notification.id >= 0 && notification.id < 30);
   }
 }

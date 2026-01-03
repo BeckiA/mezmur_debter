@@ -38,6 +38,11 @@ class BibleService {
 
   /// Gets the verse of the day based on current month and day
   static Future<Map<String, String>> getVerseOfDay() async {
+    return getVerseForDate(DateTime.now());
+  }
+
+  /// Gets the verse for a specific date
+  static Future<Map<String, String>> getVerseForDate(DateTime date) async {
     await _loadVerses();
 
     if (_bibleVerses == null || _bibleVerses!.isEmpty) {
@@ -48,15 +53,14 @@ class BibleService {
       };
     }
 
-    final today = DateTime.now();
-    final currentMonth = _monthNames[today.month - 1]; // Convert 1-12 to month name
-    final currentDay = today.day;
+    final targetMonth = _monthNames[date.month - 1]; // Convert 1-12 to month name
+    final targetDay = date.day;
 
-    // Find the verse matching current month and day
+    // Find the verse matching target month and day
     // If multiple entries exist for the same day, take the first one
     final verse = _bibleVerses!.firstWhere(
       (entry) =>
-          entry['month'] == currentMonth && entry['day'] == currentDay,
+          entry['month'] == targetMonth && entry['day'] == targetDay,
       orElse: () => _bibleVerses!.first, // Fallback to first verse if not found
     );
 
