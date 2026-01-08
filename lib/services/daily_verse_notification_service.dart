@@ -15,11 +15,15 @@ class DailyVerseNotificationService {
   DailyVerseNotificationService._internal();
 
   /// Initializes the daily verse notification by:
-  /// 1. Scheduling notifications for the next 30 days
-  /// 2. Each notification gets the correct verse for that specific day
-  /// 3. This ensures users always get the current day's verse, not yesterday's
+  /// 1. Pre-loading Bible verses once
+  /// 2. Scheduling notifications for the next 30 days
+  /// 3. Each notification gets the correct verse for that specific day
+  /// 4. This ensures users always get the current day's verse, not yesterday's
   Future<void> initializeDailyVerseNotification() async {
     try {
+      // Pre-load Bible verses once to avoid repeated async calls
+      await BibleService.getVerseOfDay();
+      
       // Cancel all existing notifications first
       await NotificationService().cancelAllNotifications();
 
@@ -30,6 +34,7 @@ class DailyVerseNotificationService {
       int daysToAdd = baseDate.isBefore(now) ? 1 : 0;
       
       // Schedule notifications for the next 30 days, each with the correct verse
+      // Use sync method since verses are already loaded
       int scheduledCount = 0;
       for (int i = 0; i < 30; i++) {
         final targetDate = baseDate.add(Duration(days: daysToAdd + i));
@@ -42,8 +47,8 @@ class DailyVerseNotificationService {
           24,
         );
 
-        // Get the verse for this specific date
-        final verse = await BibleService.getVerseForDate(targetDate);
+        // Get the verse for this specific date (synchronous since verses are pre-loaded)
+        final verse = BibleService.getVerseForDateSync(targetDate);
         final verseText = verse['text'] ?? '';
         final reference = verse['reference'] ?? '';
 
@@ -55,6 +60,11 @@ class DailyVerseNotificationService {
           reference,
         );
         scheduledCount++;
+        
+        // Yield to event loop every 5 notifications to avoid blocking
+        if (i % 5 == 4) {
+          await Future.delayed(const Duration(milliseconds: 1));
+        }
       }
 
       print('Daily verse notifications initialized successfully');

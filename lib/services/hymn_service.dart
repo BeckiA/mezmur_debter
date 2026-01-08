@@ -1,10 +1,21 @@
 import 'dart:convert';
 import 'package:flutter/services.dart';
+import 'package:flutter/foundation.dart';
 import '../models/hymn.dart';
 
 class HymnService {
   static List<Hymn>? _hymns;
   static bool _isLoaded = false;
+
+  // Parse JSON data in background isolate
+  static List<Hymn> _parseHymnsJson(String jsonString) {
+    final List<dynamic> jsonData = json.decode(jsonString);
+    return jsonData.asMap().entries.map((entry) {
+      int index = entry.key;
+      Map<String, dynamic> hymnJson = entry.value;
+      return Hymn.fromJson(hymnJson, index + 1);
+    }).toList();
+  }
 
   // Load hymns from JSON file
   static Future<void> _loadHymns() async {
@@ -14,14 +25,9 @@ class HymnService {
       final String jsonString = await rootBundle.loadString(
         'lib/data/lyrics_data.json',
       );
-      final List<dynamic> jsonData = json.decode(jsonString);
-
-      _hymns =
-          jsonData.asMap().entries.map((entry) {
-            int index = entry.key;
-            Map<String, dynamic> hymnJson = entry.value;
-            return Hymn.fromJson(hymnJson, index + 1);
-          }).toList();
+      
+      // Parse JSON in background isolate to avoid blocking main thread
+      _hymns = await compute(_parseHymnsJson, jsonString);
 
       _isLoaded = true;
     } catch (e) {

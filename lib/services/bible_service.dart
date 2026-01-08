@@ -41,10 +41,8 @@ class BibleService {
     return getVerseForDate(DateTime.now());
   }
 
-  /// Gets the verse for a specific date
-  static Future<Map<String, String>> getVerseForDate(DateTime date) async {
-    await _loadVerses();
-
+  /// Gets the verse for a specific date (synchronous version - requires verses to be pre-loaded)
+  static Map<String, String> getVerseForDateSync(DateTime date) {
     if (_bibleVerses == null || _bibleVerses!.isEmpty) {
       // Fallback verse if loading fails
       return {
@@ -68,5 +66,11 @@ class BibleService {
       'text': verse['verse_text'] ?? '',
       'reference': verse['verse_reference'] ?? '',
     };
+  }
+
+  /// Gets the verse for a specific date
+  static Future<Map<String, String>> getVerseForDate(DateTime date) async {
+    await _loadVerses();
+    return getVerseForDateSync(date);
   }
 }

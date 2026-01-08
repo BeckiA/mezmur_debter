@@ -25,17 +25,33 @@ class _HymnsScreenState extends State<HymnsScreen> {
 
   double _headerOpacity = 1.0;
   bool _isLoading = true;
+  DateTime? _lastScrollUpdate;
 
   @override
   void initState() {
     super.initState();
     _loadHymns();
-    _scrollController.addListener(() {
+    _scrollController.addListener(_onScroll);
+  }
+
+  void _onScroll() {
+    // Throttle updates to max once per 16ms (~60fps) to reduce setState calls
+    final now = DateTime.now();
+    if (_lastScrollUpdate != null &&
+        now.difference(_lastScrollUpdate!).inMilliseconds < 16) {
+      return;
+    }
+    _lastScrollUpdate = now;
+
+    final double offset = _scrollController.offset;
+    final double newOpacity = offset < 100 ? 1.0 - (offset / 300) : 0.7;
+    
+    // Only update if opacity changed significantly (more than 0.01)
+    if ((newOpacity - _headerOpacity).abs() > 0.01) {
       setState(() {
-        double offset = _scrollController.offset;
-        _headerOpacity = offset < 100 ? 1.0 - (offset / 300) : 0.7;
+        _headerOpacity = newOpacity;
       });
-    });
+    }
   }
 
   @override

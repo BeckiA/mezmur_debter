@@ -28,23 +28,7 @@ void main() async {
   final notificationProvider = NotificationProvider();
   await notificationProvider.initialize();
   
-  // Request notification permission on first launch if needed
-  final shouldRequest = await notificationProvider.shouldRequestPermissionOnFirstLaunch();
-  if (shouldRequest) {
-    final granted = await notificationProvider.requestPermission();
-    if (granted) {
-      // Initialize daily verse notification if permission granted and notifications enabled
-      if (notificationProvider.notificationsEnabled) {
-        await DailyVerseNotificationService().initializeDailyVerseNotification();
-      }
-    }
-  } else {
-    // Initialize daily verse notification if already enabled
-    if (notificationProvider.notificationsEnabled) {
-      await DailyVerseNotificationService().initializeDailyVerseNotification();
-    }
-  }
-  
+  // Start the app immediately without blocking on notification scheduling
   runApp(
     MultiProvider(
       providers: [
@@ -56,6 +40,33 @@ void main() async {
       child: const MyApp(),
     ),
   );
+  
+  // Schedule notifications asynchronously after the app starts
+  // This prevents blocking the main thread and UI rendering
+  Future.microtask(() async {
+    // Request notification permission on first launch if needed
+    final shouldRequest = await notificationProvider.shouldRequestPermissionOnFirstLaunch();
+    if (shouldRequest) {
+      final granted = await notificationProvider.requestPermission();
+      if (granted) {
+        // Initialize daily verse notification if permission granted and notifications enabled
+        if (notificationProvider.notificationsEnabled) {
+          // Run in background without blocking UI
+          DailyVerseNotificationService().initializeDailyVerseNotification().catchError((e) {
+            print('Error scheduling notifications in background: $e');
+          });
+        }
+      }
+    } else {
+      // Initialize daily verse notification if already enabled
+      if (notificationProvider.notificationsEnabled) {
+        // Run in background without blocking UI
+        DailyVerseNotificationService().initializeDailyVerseNotification().catchError((e) {
+          print('Error scheduling notifications in background: $e');
+        });
+      }
+    }
+  });
 }
 
 class MyApp extends StatelessWidget {

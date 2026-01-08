@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:hymn_app/screens/favorite_screen.dart';
 import 'package:hymn_app/screens/home_screen.dart';
 import 'package:hymn_app/screens/hymn_screen.dart';
@@ -29,6 +30,7 @@ class TabLayoutController {
 class TabLayoutState extends State<TabLayout> {
   late PageController _pageController;
   int _selectedIndex = 0;
+  DateTime? _lastBackPressTime;
 
   @override
   void initState() {
@@ -60,13 +62,50 @@ class TabLayoutState extends State<TabLayout> {
     _onItemTapped(index);
   }
 
+  Future<bool> _onWillPop() async {
+    final now = DateTime.now();
+    
+    // Check if back button was pressed within the last 2 seconds
+    if (_lastBackPressTime == null || 
+        now.difference(_lastBackPressTime!) > const Duration(seconds: 2)) {
+      // First press - show snackbar
+      _lastBackPressTime = now;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'መተግበሪያውን ለመዘጋት እባክዎ በድጋሚ የመውጫ ምልክቱን ይጫኑ ',
+            style: TextStyle(
+              fontFamily: Provider.of<FontFamilyProvider>(context, listen: false).fontFamily,
+            ),
+          ),
+          duration: const Duration(seconds: 2),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return false; // Don't exit
+    } else {
+      // Second press within 2 seconds - exit the app
+      return true; // Allow exit
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final fontFamilyProvider = Provider.of<FontFamilyProvider>(context);
 
-    return Scaffold(
+    return PopScope(
+      canPop: false,
+      onPopInvoked: (didPop) async {
+        if (!didPop) {
+          final shouldPop = await _onWillPop();
+          if (shouldPop && context.mounted) {
+            SystemNavigator.pop();
+          }
+        }
+      },
+      child: Scaffold(
       body: PageView(
         controller: _pageController,
         onPageChanged: (index) {
@@ -110,6 +149,7 @@ class TabLayoutState extends State<TabLayout> {
             label: 'ቅንብሮች',
           ),
         ],
+      ),
       ),
     );
   }
