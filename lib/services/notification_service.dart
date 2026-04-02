@@ -1,3 +1,5 @@
+import 'dart:io' show Platform;
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -30,10 +32,40 @@ class NotificationService {
       requestSoundPermission: true,
     );
 
-    const InitializationSettings initializationSettings =
+    // Desktop platform initialization settings
+    final LinuxInitializationSettings? initializationSettingsLinux =
+        !kIsWeb && Platform.isLinux
+            ? LinuxInitializationSettings(
+                defaultActionName: 'Open notification',
+              )
+            : null;
+
+    // macOS uses DarwinInitializationSettings (same as iOS)
+    final DarwinInitializationSettings? initializationSettingsMacOS =
+        !kIsWeb && Platform.isMacOS
+            ? DarwinInitializationSettings(
+                requestAlertPermission: true,
+                requestBadgePermission: true,
+                requestSoundPermission: true,
+              )
+            : null;
+
+    final WindowsInitializationSettings? initializationSettingsWindows =
+        !kIsWeb && Platform.isWindows
+            ? WindowsInitializationSettings(
+                appName: 'መዝሙር ደብተር',
+                appUserModelId: 'com.hymnapp.mezmurdebter',
+                guid: 'mezmur-debter-notifications',
+              )
+            : null;
+
+    final InitializationSettings initializationSettings =
         InitializationSettings(
       android: initializationSettingsAndroid,
       iOS: initializationSettingsIOS,
+      linux: initializationSettingsLinux,
+      macOS: initializationSettingsMacOS,
+      windows: initializationSettingsWindows,
     );
 
     await flutterLocalNotificationsPlugin.initialize(
@@ -57,6 +89,11 @@ class NotificationService {
 
   /// Check if notification permission is granted
   Future<bool> checkNotificationPermission() async {
+    // Desktop platforms typically don't require explicit permission
+    if (!kIsWeb && (Platform.isWindows || Platform.isLinux || Platform.isMacOS)) {
+      return true;
+    }
+    
     try {
       final status = await Permission.notification.status;
       return status.isGranted;
@@ -69,6 +106,11 @@ class NotificationService {
 
   /// Request notification permission
   Future<bool> requestNotificationPermission() async {
+    // Desktop platforms typically don't require explicit permission
+    if (!kIsWeb && (Platform.isWindows || Platform.isLinux || Platform.isMacOS)) {
+      return true;
+    }
+    
     try {
       final status = await Permission.notification.request();
       return status.isGranted;
@@ -84,6 +126,11 @@ class NotificationService {
   }
 
   Future<bool> _checkExactAlarmPermission() async {
+    // Desktop platforms don't need exact alarm permission
+    if (!kIsWeb && (Platform.isWindows || Platform.isLinux || Platform.isMacOS)) {
+      return true;
+    }
+    
     try {
       // First check if we already have permission
       final status = await Permission.scheduleExactAlarm.status;
@@ -148,10 +195,37 @@ class NotificationService {
       categoryIdentifier: 'daily_verse_category',
     );
 
+    // Desktop platform notification details
+    final LinuxNotificationDetails? linuxPlatformChannelSpecifics =
+        !kIsWeb && Platform.isLinux
+            ? LinuxNotificationDetails(
+                urgency: LinuxNotificationUrgency.normal,
+              )
+            : null;
+
+    // macOS uses DarwinNotificationDetails (same as iOS)
+    final DarwinNotificationDetails? macOSPlatformChannelSpecifics =
+        !kIsWeb && Platform.isMacOS
+            ? DarwinNotificationDetails(
+                presentAlert: true,
+                presentBadge: true,
+                presentSound: true,
+                categoryIdentifier: 'daily_verse_category',
+              )
+            : null;
+
+    final WindowsNotificationDetails? windowsPlatformChannelSpecifics =
+        !kIsWeb && Platform.isWindows
+            ? WindowsNotificationDetails()
+            : null;
+
     final NotificationDetails platformChannelSpecifics =
         NotificationDetails(
       android: androidPlatformChannelSpecifics,
       iOS: iOSPlatformChannelSpecifics,
+      linux: linuxPlatformChannelSpecifics,
+      macOS: macOSPlatformChannelSpecifics,
+      windows: windowsPlatformChannelSpecifics,
     );
 
     try {
