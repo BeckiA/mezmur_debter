@@ -23,13 +23,26 @@ class _HymnDetailScreenState extends State<HymnDetailScreen> {
   Hymn? hymn;
   bool isFavorite = false;
   bool isAnimating = false;
+  late int currentHymnId;
+  int totalHymnCount = 0;
 
   @override
   void initState() {
     super.initState();
+    currentHymnId = widget.hymnId;
     _loadData = _fetchHymnData();
+    _fetchTotalHymnCount();
     // Enable wakelock to keep screen on while viewing hymn
     WakelockPlus.enable();
+  }
+
+  Future<void> _fetchTotalHymnCount() async {
+    final count = await HymnService.getHymnCount();
+    if (mounted) {
+      setState(() {
+        totalHymnCount = count;
+      });
+    }
   }
 
   @override
@@ -40,16 +53,18 @@ class _HymnDetailScreenState extends State<HymnDetailScreen> {
   }
 
   Future<void> _fetchHymnData() async {
-    final fetchedHymn = await HymnService.getHymnById(widget.hymnId);
-    final favStatus = await FavoriteService.isFavorite(widget.hymnId);
+    final fetchedHymn = await HymnService.getHymnById(currentHymnId);
+    final favStatus = await FavoriteService.isFavorite(currentHymnId);
 
     // Add to recent hymns when hymn is loaded
-    await RecentHymnsService.addRecentHymn(widget.hymnId);
+    await RecentHymnsService.addRecentHymn(currentHymnId);
 
-    setState(() {
-      hymn = fetchedHymn;
-      isFavorite = favStatus;
-    });
+    if (mounted) {
+      setState(() {
+        hymn = fetchedHymn;
+        isFavorite = favStatus;
+      });
+    }
   }
 
   Future<void> _toggleFavorite() async {
@@ -57,11 +72,31 @@ class _HymnDetailScreenState extends State<HymnDetailScreen> {
       isAnimating = true;
     });
     await Future.delayed(const Duration(milliseconds: 300));
-    await FavoriteService.toggleFavorite(widget.hymnId);
-    setState(() {
-      isFavorite = !isFavorite;
-      isAnimating = false;
-    });
+    await FavoriteService.toggleFavorite(currentHymnId);
+    if (mounted) {
+      setState(() {
+        isFavorite = !isFavorite;
+        isAnimating = false;
+      });
+    }
+  }
+
+  void _navigateToNextHymn() {
+    if (currentHymnId < totalHymnCount) {
+      setState(() {
+        currentHymnId++;
+        _loadData = _fetchHymnData();
+      });
+    }
+  }
+
+  void _navigateToPreviousHymn() {
+    if (currentHymnId > 1) {
+      setState(() {
+        currentHymnId--;
+        _loadData = _fetchHymnData();
+      });
+    }
   }
 
   void _shareHymn() {
@@ -161,7 +196,7 @@ class _HymnDetailScreenState extends State<HymnDetailScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'መዝሙር ${hymn!.id}',
+                            'መዝሙር ${hymn!.displayNumber}',
                             style: textTheme.bodyMedium?.copyWith(
                               fontFamily: fontFamilyProvider.fontFamily,
                               color: theme.hintColor,
@@ -220,44 +255,78 @@ class _HymnDetailScreenState extends State<HymnDetailScreen> {
                 ),
               ),
     
-              // Font size controls
+              // Font size and navigation controls
               Consumer<FontSizeProvider>(
                 builder: (context, provider, _) {
                   return Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 24,
-                      vertical: 12,
-                    ),
                     decoration: BoxDecoration(
                       border: Border(top: BorderSide(color: theme.dividerColor)),
                       color: theme.cardColor,
                     ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        IconButton(
-                          onPressed: () => _decreaseFontSize(provider),
-                          icon: Icon(
-                            LucideIcons.minusCircle,
-                            color: theme.iconTheme.color,
-                            size: 28,
-                          ),
+                    child: SafeArea(
+                      top: false,
+                      bottom: true,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
                         ),
-                        Text(
-                          'መጠን',
-                          style: textTheme.bodyLarge?.copyWith(
-                            fontFamily: fontFamilyProvider.fontFamily,
-                          ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            // Previous Hymn Button
+                            IconButton(
+                              onPressed: currentHymnId > 1 ? _navigateToPreviousHymn : null,
+                              icon: Icon(
+                                LucideIcons.chevronLeft,
+                                color: currentHymnId > 1 ? theme.iconTheme.color : theme.disabledColor,
+                                size: 28,
+                              ),
+                            ),
+                            
+                            // Font Size Controls (Grouped in center)
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                IconButton(
+                                  onPressed: () => _decreaseFontSize(provider),
+                                  icon: Icon(
+                                    LucideIcons.minusCircle,
+                                    color: theme.iconTheme.color,
+                                    size: 24,
+                                  ),
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  'መጠን',
+                                  style: textTheme.bodyLarge?.copyWith(
+                                    fontFamily: fontFamilyProvider.fontFamily,
+                                  ),
+                                ),
+                                const SizedBox(width: 4),
+                                IconButton(
+                                  onPressed: () => _increaseFontSize(provider),
+                                  icon: Icon(
+                                    LucideIcons.plusCircle,
+                                    color: theme.iconTheme.color,
+                                    size: 24,
+                                  ),
+                                ),
+                              ],
+                            ),
+
+                            // Next Hymn Button
+                            IconButton(
+                              onPressed: currentHymnId < totalHymnCount ? _navigateToNextHymn : null,
+                              icon: Icon(
+                                LucideIcons.chevronRight,
+                                color: currentHymnId < totalHymnCount ? theme.iconTheme.color : theme.disabledColor,
+                                size: 28,
+                              ),
+                            ),
+                          ],
                         ),
-                        IconButton(
-                          onPressed: () => _increaseFontSize(provider),
-                          icon: Icon(
-                            LucideIcons.plusCircle,
-                            color: theme.iconTheme.color,
-                            size: 28,
-                          ),
-                        ),
-                      ],
+                      ),
                     ),
                   );
                 },

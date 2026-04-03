@@ -53,7 +53,7 @@ class HymnPreview extends StatelessWidget {
                 alignment: Alignment.center,
                 margin: const EdgeInsets.only(right: 16),
                 child: Text(
-                  ((hymn.number ?? hymn.id) + 5).toString(),
+                  hymn.displayNumber.toString(),
                   style: TextStyle(
                     color: Colors.white,
                     fontFamily: fontFamilyProvider.fontFamily,

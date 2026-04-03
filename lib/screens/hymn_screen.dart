@@ -169,7 +169,8 @@ class _HymnsScreenState extends State<HymnsScreen> {
                             // Add to recent hymns when navigating
                             await RecentHymnsService.addRecentHymn(hymn.id);
 
-                            Navigator.push(
+                            // Navigate to detail screen and wait for return
+                            await Navigator.push(
                               context,
                               MaterialPageRoute(
                                 builder:
@@ -177,6 +178,14 @@ class _HymnsScreenState extends State<HymnsScreen> {
                                         HymnDetailScreen(hymnId: hymn.id),
                               ),
                             );
+
+                            if (mounted) {
+                              // Clear search and reset list when returning
+                              setState(() {
+                                searchQuery = '';
+                                filteredHymns = hymns;
+                              });
+                            }
                           },
                         );
                       },
