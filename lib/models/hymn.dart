@@ -1,3 +1,101 @@
+class LineSpan {
+  final String text;
+  final bool underline;
+
+  LineSpan({required this.text, this.underline = false});
+
+  factory LineSpan.fromJson(Map<String, dynamic> json) {
+    return LineSpan(
+      text: json['text'] ?? '',
+      underline: json['underline'] == "true" || json['underline'] == true,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'text': text,
+      if (underline) 'underline': true,
+    };
+  }
+}
+
+class HymnLine {
+  final String? text;
+  final List<LineSpan>? spans;
+
+  HymnLine({this.text, this.spans});
+
+  factory HymnLine.fromData(dynamic data) {
+    if (data is String) {
+      return HymnLine(text: data);
+    } else if (data is Map<String, dynamic> && data.containsKey('spans')) {
+      final spansList = (data['spans'] as List)
+          .map((i) => LineSpan.fromJson(i as Map<String, dynamic>))
+          .toList();
+      return HymnLine(spans: spansList);
+    }
+    return HymnLine(text: data?.toString() ?? '');
+  }
+
+  dynamic toData() {
+    if (spans != null) {
+      return {'spans': spans!.map((s) => s.toJson()).toList()};
+    }
+    return text;
+  }
+}
+
+class StanzaGroup {
+  final List<HymnLine> lines;
+  final String? repeat;
+
+  StanzaGroup({required this.lines, this.repeat});
+
+  factory StanzaGroup.fromJson(Map<String, dynamic> json) {
+    return StanzaGroup(
+      lines: json['lines'] != null
+          ? (json['lines'] as List).map((i) => HymnLine.fromData(i)).toList()
+          : [],
+      repeat: json['repeat'],
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'lines': lines.map((l) => l.toData()).toList(),
+      if (repeat != null) 'repeat': repeat,
+    };
+  }
+}
+
+class Stanza {
+  final List<HymnLine>? lines;
+  final String? repeat;
+  final List<StanzaGroup>? groups;
+
+  Stanza({this.lines, this.repeat, this.groups});
+
+  factory Stanza.fromJson(Map<String, dynamic> json) {
+    return Stanza(
+      lines: json['lines'] != null
+          ? (json['lines'] as List).map((i) => HymnLine.fromData(i)).toList()
+          : null,
+      repeat: json['repeat'],
+      groups: json['groups'] != null
+          ? (json['groups'] as List).map((i) => StanzaGroup.fromJson(i)).toList()
+          : null,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      if (lines != null) 'lines': lines!.map((l) => l.toData()).toList(),
+      if (repeat != null) 'repeat': repeat,
+      if (groups != null) 'groups': groups!.map((e) => e.toJson()).toList(),
+    };
+  }
+}
+
 class Hymn {
   final int id;
   final int? number;
@@ -5,6 +103,7 @@ class Hymn {
   final String firstLine;
   final String lyrics;
   final List<String>? searchTerms;
+  final List<Stanza>? stanzas;
 
   Hymn({
     required this.id,
@@ -13,6 +112,7 @@ class Hymn {
     required this.firstLine,
     required this.lyrics,
     this.searchTerms,
+    this.stanzas,
   });
 
   /// The user-facing hymn number, starting from 6 and skipping 55 and 88.
@@ -36,6 +136,9 @@ class Hymn {
           json['search_terms'] != null
               ? List<String>.from(json['search_terms'])
               : null,
+      stanzas: json['stanzas'] != null
+          ? (json['stanzas'] as List).map((i) => Stanza.fromJson(i)).toList()
+          : null,
     );
   }
 
@@ -47,6 +150,7 @@ class Hymn {
       'first_line': firstLine,
       'lyrics': lyrics,
       'search_terms': searchTerms,
+      if (stanzas != null) 'stanzas': stanzas!.map((e) => e.toJson()).toList(),
     };
   }
 }

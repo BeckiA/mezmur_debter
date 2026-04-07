@@ -137,6 +137,97 @@ class _HymnDetailScreenState extends State<HymnDetailScreen> {
     }
   }
 
+  Widget _buildHymnLine(HymnLine line, TextStyle? style) {
+    if (line.spans != null) {
+      return Text.rich(
+        TextSpan(
+          children: line.spans!
+              .map((span) => TextSpan(
+                    text: span.text,
+                    style: style?.copyWith(
+                      decoration: span.underline ? TextDecoration.underline : TextDecoration.none,
+                    ),
+                  ))
+              .toList(),
+        ),
+      );
+    }
+    return Text(
+      line.text ?? '',
+      style: style,
+    );
+  }
+
+  Widget _buildStanzaPart(List<HymnLine> lines, String? repeat, TextStyle? style, Color themeColor) {
+    if (lines.isEmpty) return const SizedBox.shrink();
+    return IntrinsicHeight(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Lyrics text
+          Flexible(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: lines.map((line) => _buildHymnLine(line, style)).toList(),
+            ),
+          ),
+          // Repeat marker (bracket + label)
+          if (repeat != null) ...[
+            const SizedBox(width: 8),
+            _buildRepeatMarker(repeat, style, themeColor),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStanza(Stanza stanza, TextStyle? style) {
+    final themeColor = Theme.of(context).colorScheme.primary;
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          if (stanza.groups != null)
+            ...stanza.groups!.asMap().entries.map((entry) {
+              final isLastGroup = entry.key == stanza.groups!.length - 1;
+              final hasLinesAfter = stanza.lines != null && stanza.lines!.isNotEmpty;
+              return Padding(
+                padding: EdgeInsets.only(bottom: (isLastGroup && !hasLinesAfter) ? 0 : 8),
+                child: _buildStanzaPart(entry.value.lines, entry.value.repeat, style, themeColor),
+              );
+            }),
+          if (stanza.lines != null && stanza.lines!.isNotEmpty)
+            _buildStanzaPart(stanza.lines!, stanza.repeat, style, themeColor),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRepeatMarker(String label, TextStyle? style, Color color) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // The bracket line
+        CustomPaint(
+          painter: _BracketPainter(color: color.withOpacity(0.6)),
+          size: const Size(12, double.infinity),
+        ),
+        const SizedBox(width: 6),
+        // The label (አዘ or 2X)
+        Text(
+          label,
+          style: style?.copyWith(
+            fontSize: 14,
+            fontWeight: FontWeight.bold,
+            color: color,
+          ),
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -242,13 +333,28 @@ class _HymnDetailScreenState extends State<HymnDetailScreen> {
                   padding: const EdgeInsets.all(20),
                   child: Consumer<FontSizeProvider>(
                     builder: (context, provider, _) {
-                      return Text(
-                        hymn!.lyrics,
-                        style: textTheme.bodyLarge?.copyWith(
-                          fontFamily: fontFamilyProvider.fontFamily,
-                          fontSize: provider.fontSizeValue,
-                          height: 1.6,
-                        ),
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          if (hymn!.stanzas != null && hymn!.stanzas!.isNotEmpty)
+                            ...hymn!.stanzas!.map((stanza) => _buildStanza(
+                                  stanza,
+                                  textTheme.bodyLarge?.copyWith(
+                                    fontFamily: fontFamilyProvider.fontFamily,
+                                    fontSize: provider.fontSizeValue,
+                                    height: 1.6,
+                                  ),
+                                ))
+                          else
+                            Text(
+                              hymn!.lyrics,
+                              style: textTheme.bodyLarge?.copyWith(
+                                fontFamily: fontFamilyProvider.fontFamily,
+                                fontSize: provider.fontSizeValue,
+                                height: 1.6,
+                              ),
+                            ),
+                        ],
                       );
                     },
                   ),
@@ -337,4 +443,28 @@ class _HymnDetailScreenState extends State<HymnDetailScreen> {
       ),
     );
   }
+}
+
+class _BracketPainter extends CustomPainter {
+  final Color color;
+  _BracketPainter({required this.color});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..strokeWidth = 2.5
+      ..style = PaintingStyle.stroke;
+
+    final path = Path()
+      ..moveTo(0, 0)
+      ..lineTo(size.width, 0)
+      ..lineTo(size.width, size.height)
+      ..lineTo(0, size.height);
+
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(_BracketPainter old) => old.color != color;
 }
