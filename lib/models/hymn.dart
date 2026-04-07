@@ -15,6 +15,17 @@ class Hymn {
     this.searchTerms,
   });
 
+  /// The user-facing hymn number, starting from 6 and skipping 55 and 88.
+  int get displayNumber {
+    final base = number ?? id;
+    int display = base + 5;
+    // Skip 55: if the number would be 55 or more, add an extra 1.
+    if (display >= 55) display += 1;
+    // Skip 88: if the number would be 88 or more, add another extra 1.
+    if (display >= 88) display += 1;
+    return display;
+  }
+
   factory Hymn.fromJson(Map<String, dynamic> json, int id) {
     return Hymn(
       id: id,

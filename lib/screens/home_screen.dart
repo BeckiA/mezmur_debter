@@ -98,14 +98,20 @@ class _HomeScreenState extends State<HomeScreen> {
     // Add to recent hymns before navigating
     await RecentHymnsService.addRecentHymn(hymnId);
     
-    // Navigate to detail screen
+    // Navigate to detail screen and wait for return
     await Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => HymnDetailScreen(hymnId: hymnId)),
     );
     
-    // Reload recent hymns when returning from detail screen
-    _loadRecentHymns();
+    if (mounted) {
+      // Reload recent hymns and clear search when returning
+      _loadRecentHymns();
+      setState(() {
+        searchQuery = '';
+        searchResults = [];
+      });
+    }
   }
 
   @override

@@ -75,14 +75,9 @@ class HymnService {
         lowercaseQuery.split(' ').where((word) => word.isNotEmpty).toList();
 
     return _hymns!.where((hymn) {
-      // Search by ID
-      if (hymn.id.toString().contains(lowercaseQuery)) return true;
-
-      // Search by number
-      if (hymn.number != null &&
-          hymn.number.toString().contains(lowercaseQuery)) {
-        return true;
-      }
+      // Search by numeric label (with +5 offset and skipping 55)
+      final displayedNumber = hymn.displayNumber;
+      if (displayedNumber.toString().contains(lowercaseQuery)) return true;
 
       // Search in title (priority 1) - Amharic text
       final titleLower = hymn.title;

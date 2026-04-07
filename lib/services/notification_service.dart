@@ -25,16 +25,16 @@ class NotificationService {
 
     const DarwinInitializationSettings initializationSettingsIOS =
         DarwinInitializationSettings(
-      requestAlertPermission: true,
-      requestBadgePermission: true,
-      requestSoundPermission: true,
-    );
+          requestAlertPermission: true,
+          requestBadgePermission: true,
+          requestSoundPermission: true,
+        );
 
     const InitializationSettings initializationSettings =
         InitializationSettings(
-      android: initializationSettingsAndroid,
-      iOS: initializationSettingsIOS,
-    );
+          android: initializationSettingsAndroid,
+          iOS: initializationSettingsIOS,
+        );
 
     await flutterLocalNotificationsPlugin.initialize(
       initializationSettings,
@@ -129,27 +129,26 @@ class NotificationService {
 
     final AndroidNotificationDetails androidPlatformChannelSpecifics =
         AndroidNotificationDetails(
-      'daily_verse_channel_id',
-      'Daily Verse Notifications',
-      channelDescription: 'Receive a daily Bible verse notification',
-      importance: Importance.max,
-      priority: Priority.max,
-      showWhen: true,
-      icon: 'notification_icon',
-      styleInformation: bigTextStyleInformation,
-      actions: [readAction],
-    );
+          'daily_verse_channel_id',
+          'Daily Verse Notifications',
+          channelDescription: 'Receive a daily Bible verse notification',
+          importance: Importance.max,
+          priority: Priority.max,
+          showWhen: true,
+          icon: 'notification_icon',
+          styleInformation: bigTextStyleInformation,
+          actions: [readAction],
+        );
 
     const DarwinNotificationDetails iOSPlatformChannelSpecifics =
         DarwinNotificationDetails(
-      presentAlert: true,
-      presentBadge: true,
-      presentSound: true,
-      categoryIdentifier: 'daily_verse_category',
-    );
+          presentAlert: true,
+          presentBadge: true,
+          presentSound: true,
+          categoryIdentifier: 'daily_verse_category',
+        );
 
-    final NotificationDetails platformChannelSpecifics =
-        NotificationDetails(
+    final NotificationDetails platformChannelSpecifics = NotificationDetails(
       android: androidPlatformChannelSpecifics,
       iOS: iOSPlatformChannelSpecifics,
     );
@@ -162,9 +161,10 @@ class NotificationService {
         verse.isNotEmpty ? verse : "Stay inspired with daily verses!",
         scheduledDate,
         platformChannelSpecifics,
-        androidScheduleMode: hasExactPermission
-            ? AndroidScheduleMode.exactAllowWhileIdle
-            : AndroidScheduleMode.inexactAllowWhileIdle,
+        androidScheduleMode:
+            hasExactPermission
+                ? AndroidScheduleMode.exactAllowWhileIdle
+                : AndroidScheduleMode.inexactAllowWhileIdle,
       );
     } catch (e) {
       print('Error scheduling notification $notificationId: $e');
@@ -182,17 +182,20 @@ class NotificationService {
 
   /// Legacy method kept for backward compatibility
   /// Now delegates to scheduleNotificationForDate for a single notification
-  Future<void> scheduleDailyNotification([String verse = "", String reference = ""]) async {
+  Future<void> scheduleDailyNotification([
+    String verse = "",
+    String reference = "",
+  ]) async {
     final tz.TZDateTime now = tz.TZDateTime.now(tz.local);
     tz.TZDateTime scheduledDate = tz.TZDateTime(
       tz.local,
       now.year,
       now.month,
       now.day,
-      10, // hour (10 AM in 24-hour format)
-      24, // minute
+      5,
+      00,
     );
-    
+
     if (scheduledDate.isBefore(now)) {
       scheduledDate = scheduledDate.add(const Duration(days: 1));
     }
@@ -205,6 +208,8 @@ class NotificationService {
     final pending =
         await flutterLocalNotificationsPlugin.pendingNotificationRequests();
     // Check if any daily verse notifications are scheduled (IDs 0-29)
-    return pending.any((notification) => notification.id >= 0 && notification.id < 30);
+    return pending.any(
+      (notification) => notification.id >= 0 && notification.id < 30,
+    );
   }
 }

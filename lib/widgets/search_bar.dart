@@ -40,11 +40,24 @@ class _SearchBarItemState extends State<SearchBarItem> {
         !_isUpdatingFromWidget) {
       _isUpdatingFromWidget = true;
       final currentSelection = _controller.selection;
+      final newText = widget.value;
+      
+      // Ensure the selection is within the bounds of the new text
+      TextSelection newSelection;
+      if (currentSelection.isValid) {
+        newSelection = TextSelection(
+          baseOffset: currentSelection.baseOffset.clamp(0, newText.length),
+          extentOffset: currentSelection.extentOffset.clamp(0, newText.length),
+          affinity: currentSelection.affinity,
+          isDirectional: currentSelection.isDirectional,
+        );
+      } else {
+        newSelection = TextSelection.collapsed(offset: newText.length);
+      }
+
       _controller.value = TextEditingValue(
-        text: widget.value,
-        selection: currentSelection.isValid
-            ? currentSelection
-            : TextSelection.collapsed(offset: widget.value.length),
+        text: newText,
+        selection: newSelection,
       );
       _isUpdatingFromWidget = false;
     }
