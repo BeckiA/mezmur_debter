@@ -45,7 +45,7 @@ class _HymnsScreenState extends State<HymnsScreen> {
 
     final double offset = _scrollController.offset;
     final double newOpacity = offset < 100 ? 1.0 - (offset / 300) : 0.7;
-    
+
     // Only update if opacity changed significantly (more than 0.01)
     if ((newOpacity - _headerOpacity).abs() > 0.01) {
       setState(() {
@@ -73,7 +73,7 @@ class _HymnsScreenState extends State<HymnsScreen> {
       setState(() {
         _isLoading = false;
       });
-      print('Error loading hymns: $e');
+      print('Error loading lyrices: $e');
     }
   }
 
@@ -149,7 +149,9 @@ class _HymnsScreenState extends State<HymnsScreen> {
                                   : 'ለ "$searchQuery" ምንም ውጤት አልተገኘም',
                               style: TextStyle(
                                 fontFamily: fontFamilyProvider.fontFamily,
-                                fontSize: fontSizeProvider.fontSizeValue * 0.75, // 75% of base size
+                                fontSize:
+                                    fontSizeProvider.fontSizeValue *
+                                    0.75, // 75% of base size
                               ),
                               textAlign: TextAlign.center,
                             );
