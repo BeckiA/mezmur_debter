@@ -101,22 +101,19 @@ class _HymnDetailScreenState extends State<HymnDetailScreen> {
 
   void _shareHymn() {
     if (hymn == null) return;
-    
+
     // Ensure we have the full lyrics text
     final lyricsText = hymn!.lyrics;
     final titleText = hymn!.title;
-    
+
     // Construct the share text with proper formatting
     final shareText = StringBuffer();
     shareText.writeln(titleText);
     shareText.writeln(); // Empty line
     shareText.write(lyricsText);
-    
+
     // Share with subject for better formatting
-    Share.share(
-      shareText.toString(),
-      subject: titleText,
-    );
+    Share.share(shareText.toString(), subject: titleText);
   }
 
   void _increaseFontSize(FontSizeProvider fontSizeProvider) {
@@ -137,9 +134,10 @@ class _HymnDetailScreenState extends State<HymnDetailScreen> {
     }
   }
 
-  Widget _buildHymnLine(HymnLine line, TextStyle? style) {
+  Widget _buildHymnLine(HymnLine line, TextStyle? style, Color themeColor) {
+    Widget content;
     if (line.spans != null) {
-      return Text.rich(
+      content = Text.rich(
         TextSpan(
           children: line.spans!
               .map((span) => TextSpan(
@@ -151,15 +149,49 @@ class _HymnDetailScreenState extends State<HymnDetailScreen> {
               .toList(),
         ),
       );
+    } else {
+      content = Text(
+        line.text ?? '',
+        style: style,
+      );
     }
-    return Text(
-      line.text ?? '',
-      style: style,
+
+    if (line.repeat != null) {
+      return Padding(
+        padding: const EdgeInsets.only(right: 8.0, bottom: 4.0),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            content,
+            const SizedBox(width: 4),
+            Text(
+              line.repeat!,
+              style: style?.copyWith(
+                fontSize: (style?.fontSize ?? 16) * 0.75,
+                fontWeight: FontWeight.bold,
+                color: themeColor,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+    return content;
+  }
+
+  Widget _buildLine(HymnLine line, TextStyle? style, double indentSize, Color themeColor) {
+    final bool isIndented = line.indent == true;
+    final double leftPad = isIndented ? indentSize : 0;
+
+    return Padding(
+      padding: EdgeInsets.only(left: leftPad),
+      child: _buildHymnLine(line, style, themeColor),
     );
   }
 
-  Widget _buildStanzaPart(List<HymnLine> lines, String? repeat, TextStyle? style, Color themeColor) {
-    if (lines.isEmpty) return const SizedBox.shrink();
+  Widget _buildStanzaPart(List<Widget> lineWidgets, String? repeat, TextStyle? style, Color themeColor) {
+    if (lineWidgets.isEmpty) return const SizedBox.shrink();
     return IntrinsicHeight(
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -168,7 +200,7 @@ class _HymnDetailScreenState extends State<HymnDetailScreen> {
           Flexible(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: lines.map((line) => _buildHymnLine(line, style)).toList(),
+              children: lineWidgets,
             ),
           ),
           // Repeat marker (bracket + label)
@@ -181,27 +213,76 @@ class _HymnDetailScreenState extends State<HymnDetailScreen> {
     );
   }
 
+  Widget _wrapWithGroupBrackets(List<Widget> lineWidgets, List<StanzaGroup>? groups, TextStyle? style, Color themeColor) {
+    if (groups == null || groups.isEmpty) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: lineWidgets,
+      );
+    }
+
+    // This handles non-overlapping groups in order.
+    // For simplicity, we process only groups that have contiguous lineIndices.
+    final List<Widget> result = [];
+    int currentIndex = 0;
+
+    // Create a set of all indices that are part of any group
+    final Map<int, StanzaGroup> groupMap = {};
+    for (var group in groups) {
+      if (group.lineIndices != null) {
+        for (var idx in group.lineIndices!) {
+          groupMap[idx] = group;
+        }
+      }
+    }
+
+    while (currentIndex < lineWidgets.length) {
+      if (groupMap.containsKey(currentIndex)) {
+        final group = groupMap[currentIndex]!;
+        final indices = group.lineIndices!;
+        
+        // Ensure the range is contiguous from current index
+        final List<Widget> groupWidgets = [];
+        int tempIndex = currentIndex;
+        while (tempIndex < lineWidgets.length && groupMap[tempIndex] == group) {
+          groupWidgets.add(lineWidgets[tempIndex]);
+          tempIndex++;
+        }
+        
+        result.add(_buildStanzaPart(groupWidgets, group.repeat, style, themeColor));
+        currentIndex = tempIndex;
+      } else {
+        result.add(lineWidgets[currentIndex]);
+        currentIndex++;
+      }
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: result,
+    );
+  }
+
   Widget _buildStanza(Stanza stanza, TextStyle? style) {
     final themeColor = Theme.of(context).colorScheme.primary;
+    final List<HymnLine> lines = stanza.lines ?? [];
+
+    // 1. Build line widgets with indentation
+    final List<Widget> lineWidgets = lines.map((line) {
+      return _buildLine(line, style, 32.0, themeColor);
+    }).toList();
+
+    // 2. Wrap groups with inner brackets
+    Widget content = _wrapWithGroupBrackets(lineWidgets, stanza.groups, style, themeColor);
+
+    // 3. Wrap entire stanza with outer bracket if needed
+    if (stanza.repeat != null) {
+      content = _buildStanzaPart([content], stanza.repeat, style, themeColor);
+    }
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          if (stanza.groups != null)
-            ...stanza.groups!.asMap().entries.map((entry) {
-              final isLastGroup = entry.key == stanza.groups!.length - 1;
-              final hasLinesAfter = stanza.lines != null && stanza.lines!.isNotEmpty;
-              return Padding(
-                padding: EdgeInsets.only(bottom: (isLastGroup && !hasLinesAfter) ? 0 : 8),
-                child: _buildStanzaPart(entry.value.lines, entry.value.repeat, style, themeColor),
-              );
-            }),
-          if (stanza.lines != null && stanza.lines!.isNotEmpty)
-            _buildStanzaPart(stanza.lines!, stanza.repeat, style, themeColor),
-        ],
-      ),
+      child: content,
     );
   }
 
@@ -250,7 +331,7 @@ class _HymnDetailScreenState extends State<HymnDetailScreen> {
               ),
             );
           }
-    
+
           if (hymn == null) {
             return Center(
               child: Text(
@@ -261,16 +342,14 @@ class _HymnDetailScreenState extends State<HymnDetailScreen> {
               ),
             );
           }
-    
+
           return Column(
             children: [
               // Header
               Container(
                 padding: const EdgeInsets.fromLTRB(16, 20, 16, 16),
                 decoration: BoxDecoration(
-                  border: Border(
-                    bottom: BorderSide(color: theme.dividerColor),
-                  ),
+                  border: Border(bottom: BorderSide(color: theme.dividerColor)),
                 ),
                 child: Row(
                   children: [
@@ -306,7 +385,10 @@ class _HymnDetailScreenState extends State<HymnDetailScreen> {
                       ),
                     ),
                     IconButton(
-                      icon: Icon(LucideIcons.share2, color: theme.iconTheme.color),
+                      icon: Icon(
+                        LucideIcons.share2,
+                        color: theme.iconTheme.color,
+                      ),
                       onPressed: _shareHymn,
                     ),
                     GestureDetector(
@@ -326,7 +408,7 @@ class _HymnDetailScreenState extends State<HymnDetailScreen> {
                   ],
                 ),
               ),
-    
+
               // Content
               Expanded(
                 child: SingleChildScrollView(
@@ -336,15 +418,18 @@ class _HymnDetailScreenState extends State<HymnDetailScreen> {
                       return Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          if (hymn!.stanzas != null && hymn!.stanzas!.isNotEmpty)
-                            ...hymn!.stanzas!.map((stanza) => _buildStanza(
-                                  stanza,
-                                  textTheme.bodyLarge?.copyWith(
-                                    fontFamily: fontFamilyProvider.fontFamily,
-                                    fontSize: provider.fontSizeValue,
-                                    height: 1.6,
-                                  ),
-                                ))
+                          if (hymn!.stanzas != null &&
+                              hymn!.stanzas!.isNotEmpty)
+                            ...hymn!.stanzas!.map(
+                              (stanza) => _buildStanza(
+                                stanza,
+                                textTheme.bodyLarge?.copyWith(
+                                  fontFamily: fontFamilyProvider.fontFamily,
+                                  fontSize: provider.fontSizeValue,
+                                  height: 1.6,
+                                ),
+                              ),
+                            )
                           else
                             Text(
                               hymn!.lyrics,
@@ -360,13 +445,15 @@ class _HymnDetailScreenState extends State<HymnDetailScreen> {
                   ),
                 ),
               ),
-    
+
               // Font size and navigation controls
               Consumer<FontSizeProvider>(
                 builder: (context, provider, _) {
                   return Container(
                     decoration: BoxDecoration(
-                      border: Border(top: BorderSide(color: theme.dividerColor)),
+                      border: Border(
+                        top: BorderSide(color: theme.dividerColor),
+                      ),
                       color: theme.cardColor,
                     ),
                     child: SafeArea(
@@ -382,14 +469,20 @@ class _HymnDetailScreenState extends State<HymnDetailScreen> {
                           children: [
                             // Previous Hymn Button
                             IconButton(
-                              onPressed: currentHymnId > 1 ? _navigateToPreviousHymn : null,
+                              onPressed:
+                                  currentHymnId > 1
+                                      ? _navigateToPreviousHymn
+                                      : null,
                               icon: Icon(
                                 LucideIcons.chevronLeft,
-                                color: currentHymnId > 1 ? theme.iconTheme.color : theme.disabledColor,
+                                color:
+                                    currentHymnId > 1
+                                        ? theme.iconTheme.color
+                                        : theme.disabledColor,
                                 size: 28,
                               ),
                             ),
-                            
+
                             // Font Size Controls (Grouped in center)
                             Row(
                               mainAxisSize: MainAxisSize.min,
@@ -423,10 +516,16 @@ class _HymnDetailScreenState extends State<HymnDetailScreen> {
 
                             // Next Hymn Button
                             IconButton(
-                              onPressed: currentHymnId < totalHymnCount ? _navigateToNextHymn : null,
+                              onPressed:
+                                  currentHymnId < totalHymnCount
+                                      ? _navigateToNextHymn
+                                      : null,
                               icon: Icon(
                                 LucideIcons.chevronRight,
-                                color: currentHymnId < totalHymnCount ? theme.iconTheme.color : theme.disabledColor,
+                                color:
+                                    currentHymnId < totalHymnCount
+                                        ? theme.iconTheme.color
+                                        : theme.disabledColor,
                                 size: 28,
                               ),
                             ),
@@ -451,16 +550,18 @@ class _BracketPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = color
-      ..strokeWidth = 2.5
-      ..style = PaintingStyle.stroke;
+    final paint =
+        Paint()
+          ..color = color
+          ..strokeWidth = 2.5
+          ..style = PaintingStyle.stroke;
 
-    final path = Path()
-      ..moveTo(0, 0)
-      ..lineTo(size.width, 0)
-      ..lineTo(size.width, size.height)
-      ..lineTo(0, size.height);
+    final path =
+        Path()
+          ..moveTo(0, 0)
+          ..lineTo(size.width, 0)
+          ..lineTo(size.width, size.height)
+          ..lineTo(0, size.height);
 
     canvas.drawPath(path, paint);
   }

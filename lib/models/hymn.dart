@@ -12,57 +12,79 @@ class LineSpan {
   }
 
   Map<String, dynamic> toJson() {
-    return {
-      'text': text,
-      if (underline) 'underline': true,
-    };
+    return {'text': text, if (underline) 'underline': true};
   }
 }
 
 class HymnLine {
   final String? text;
   final List<LineSpan>? spans;
+  final String? repeat;
+  final bool? indent;
 
-  HymnLine({this.text, this.spans});
+  HymnLine({this.text, this.spans, this.repeat, this.indent});
 
   factory HymnLine.fromData(dynamic data) {
     if (data is String) {
       return HymnLine(text: data);
-    } else if (data is Map<String, dynamic> && data.containsKey('spans')) {
-      final spansList = (data['spans'] as List)
-          .map((i) => LineSpan.fromJson(i as Map<String, dynamic>))
-          .toList();
-      return HymnLine(spans: spansList);
+    } else if (data is Map) {
+      final repeat = data['repeat']?.toString();
+      final indent = data['indent'] == true || data['indent'] == "true";
+      if (data.containsKey('spans')) {
+        final spansData = data['spans'];
+        if (spansData is List) {
+          final spansList = spansData.map((i) => LineSpan.fromJson(i as Map<String, dynamic>)).toList();
+          return HymnLine(spans: spansList, repeat: repeat, indent: indent);
+        }
+      } else if (data.containsKey('text')) {
+        return HymnLine(text: data['text']?.toString(), repeat: repeat, indent: indent);
+      }
     }
     return HymnLine(text: data?.toString() ?? '');
   }
 
   dynamic toData() {
     if (spans != null) {
-      return {'spans': spans!.map((s) => s.toJson()).toList()};
+      return {
+        'spans': spans!.map((s) => s.toJson()).toList(),
+        if (repeat != null) 'repeat': repeat,
+        if (indent == true) 'indent': true,
+      };
+    }
+    if (repeat != null || indent == true) {
+      return {
+        'text': text,
+        if (repeat != null) 'repeat': repeat,
+        if (indent == true) 'indent': true,
+      };
     }
     return text;
   }
 }
 
 class StanzaGroup {
-  final List<HymnLine> lines;
+  final List<HymnLine>? lines;
+  final List<int>? lineIndices;
   final String? repeat;
 
-  StanzaGroup({required this.lines, this.repeat});
+  StanzaGroup({this.lines, this.lineIndices, this.repeat});
 
   factory StanzaGroup.fromJson(Map<String, dynamic> json) {
     return StanzaGroup(
       lines: json['lines'] != null
           ? (json['lines'] as List).map((i) => HymnLine.fromData(i)).toList()
-          : [],
+          : null,
+      lineIndices: json['lineIndices'] != null
+          ? List<int>.from(json['lineIndices'])
+          : null,
       repeat: json['repeat'],
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
-      'lines': lines.map((l) => l.toData()).toList(),
+      if (lines != null) 'lines': lines!.map((l) => l.toData()).toList(),
+      if (lineIndices != null) 'lineIndices': lineIndices,
       if (repeat != null) 'repeat': repeat,
     };
   }
@@ -77,13 +99,19 @@ class Stanza {
 
   factory Stanza.fromJson(Map<String, dynamic> json) {
     return Stanza(
-      lines: json['lines'] != null
-          ? (json['lines'] as List).map((i) => HymnLine.fromData(i)).toList()
-          : null,
+      lines:
+          json['lines'] != null
+              ? (json['lines'] as List)
+                  .map((i) => HymnLine.fromData(i))
+                  .toList()
+              : null,
       repeat: json['repeat'],
-      groups: json['groups'] != null
-          ? (json['groups'] as List).map((i) => StanzaGroup.fromJson(i)).toList()
-          : null,
+      groups:
+          json['groups'] != null
+              ? (json['groups'] as List)
+                  .map((i) => StanzaGroup.fromJson(i))
+                  .toList()
+              : null,
     );
   }
 
@@ -136,9 +164,12 @@ class Hymn {
           json['search_terms'] != null
               ? List<String>.from(json['search_terms'])
               : null,
-      stanzas: json['stanzas'] != null
-          ? (json['stanzas'] as List).map((i) => Stanza.fromJson(i)).toList()
-          : null,
+      stanzas:
+          json['stanzas'] != null
+              ? (json['stanzas'] as List)
+                  .map((i) => Stanza.fromJson(i))
+                  .toList()
+              : null,
     );
   }
 
