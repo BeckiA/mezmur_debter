@@ -148,13 +148,26 @@ class _HymnDetailScreenState extends State<HymnDetailScreen> {
                   ))
               .toList(),
         ),
+        softWrap: false,
+        overflow: TextOverflow.visible,
       );
     } else {
       content = Text(
         line.text ?? '',
-        style: style,
+        style: style?.copyWith(
+          decoration: line.underline == true ? TextDecoration.underline : TextDecoration.none,
+        ),
+        softWrap: false,
+        overflow: TextOverflow.visible,
       );
     }
+
+    // Wrap in FittedBox to scale down if it exceeds available width
+    content = FittedBox(
+      fit: BoxFit.scaleDown,
+      alignment: Alignment.centerLeft,
+      child: content,
+    );
 
     if (line.repeat != null) {
       return Padding(
@@ -164,7 +177,7 @@ class _HymnDetailScreenState extends State<HymnDetailScreen> {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             content,
-            const SizedBox(width: 4),
+            const SizedBox(width: 2),
             Text(
               line.repeat!,
               style: style?.copyWith(
@@ -182,12 +195,21 @@ class _HymnDetailScreenState extends State<HymnDetailScreen> {
 
   Widget _buildLine(HymnLine line, TextStyle? style, double indentSize, Color themeColor) {
     final bool isIndented = line.indent == true;
+    final bool isRightAligned = line.rightAlign == true;
     final double leftPad = isIndented ? indentSize : 0;
 
-    return Padding(
+    Widget content = Padding(
       padding: EdgeInsets.only(left: leftPad),
       child: _buildHymnLine(line, style, themeColor),
     );
+
+    if (isRightAligned) {
+      return Align(
+        alignment: Alignment.centerRight,
+        child: content,
+      );
+    }
+    return content;
   }
 
   Widget _buildStanzaPart(List<Widget> lineWidgets, String? repeat, TextStyle? style, Color themeColor) {
@@ -205,7 +227,7 @@ class _HymnDetailScreenState extends State<HymnDetailScreen> {
           ),
           // Repeat marker (bracket + label)
           if (repeat != null) ...[
-            const SizedBox(width: 8),
+            const SizedBox(width: 4),
             _buildRepeatMarker(repeat, style, themeColor),
           ],
         ],

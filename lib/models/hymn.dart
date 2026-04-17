@@ -21,8 +21,10 @@ class HymnLine {
   final List<LineSpan>? spans;
   final String? repeat;
   final bool? indent;
+  final bool? rightAlign;
+  final bool? underline;
 
-  HymnLine({this.text, this.spans, this.repeat, this.indent});
+  HymnLine({this.text, this.spans, this.repeat, this.indent, this.rightAlign, this.underline});
 
   factory HymnLine.fromData(dynamic data) {
     if (data is String) {
@@ -30,14 +32,16 @@ class HymnLine {
     } else if (data is Map) {
       final repeat = data['repeat']?.toString();
       final indent = data['indent'] == true || data['indent'] == "true";
+      final rightAlign = data['rightAlign'] == true || data['rightAlign'] == "true";
+      final underline = data['underline'] == true || data['underline'] == "true";
       if (data.containsKey('spans')) {
         final spansData = data['spans'];
         if (spansData is List) {
           final spansList = spansData.map((i) => LineSpan.fromJson(i as Map<String, dynamic>)).toList();
-          return HymnLine(spans: spansList, repeat: repeat, indent: indent);
+          return HymnLine(spans: spansList, repeat: repeat, indent: indent, rightAlign: rightAlign, underline: underline);
         }
       } else if (data.containsKey('text')) {
-        return HymnLine(text: data['text']?.toString(), repeat: repeat, indent: indent);
+        return HymnLine(text: data['text']?.toString(), repeat: repeat, indent: indent, rightAlign: rightAlign, underline: underline);
       }
     }
     return HymnLine(text: data?.toString() ?? '');
@@ -49,13 +53,17 @@ class HymnLine {
         'spans': spans!.map((s) => s.toJson()).toList(),
         if (repeat != null) 'repeat': repeat,
         if (indent == true) 'indent': true,
+        if (rightAlign == true) 'rightAlign': true,
+        if (underline == true) 'underline': true,
       };
     }
-    if (repeat != null || indent == true) {
+    if (repeat != null || indent == true || rightAlign == true || underline == true) {
       return {
         'text': text,
         if (repeat != null) 'repeat': repeat,
         if (indent == true) 'indent': true,
+        if (rightAlign == true) 'rightAlign': true,
+        if (underline == true) 'underline': true,
       };
     }
     return text;
